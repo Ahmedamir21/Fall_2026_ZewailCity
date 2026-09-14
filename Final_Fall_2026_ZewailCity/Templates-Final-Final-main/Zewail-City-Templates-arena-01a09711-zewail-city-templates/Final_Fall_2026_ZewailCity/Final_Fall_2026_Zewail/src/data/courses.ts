@@ -16,20 +16,10 @@ import type { Course, Day, Instructor, Meeting, MeetingType } from '../types';
 const B = { A: [8, 10], B: [10, 12], C: [12, 14], D: [14, 16], E: [16, 18] } as const;
 type Block = keyof typeof B;
 
-/**
- * Credit hours
- * ------------
- * PHYS 104's 3 credits are stated directly in its self-service listing. Every other
- * course in this catalogue is a standard 3-credit-hour course (the norm for this
- * curriculum), so the same value is used consistently for the Credits Dashboard.
- * This is a credit-hour figure only — it is never confused with meeting duration.
- */
-
 function m(type: MeetingType, sec: string, day: Day, startHour: number, endHour: number, room: string): Meeting {
   return { type, sec, day, start: startHour * 60, end: endHour * 60, room };
 }
 
-/** Legacy block → real interval (used for the data that came from the original app). */
 function mb(type: MeetingType, sec: string, day: Day, block: Block, room: string): Meeting {
   const [s, e] = B[block];
   return m(type, sec, day, s, e, room);
@@ -142,7 +132,11 @@ const csai205: Course = {
   instructors: [
     {
       name: 'Mohamed Maher Ata',
-      lectures: [lec('01', 'Mon', 'A', 'G019-B'), lec('02', 'Mon', 'D', 'G025B'), lec('03', 'Tue', 'B', 'G006-B')],
+      lectures: [
+        lec('01', 'Mon', 'A', 'G019-B'),
+        lec('02', 'Mon', 'D', 'G025B'),
+        lec('03', 'Tue', 'B', 'G006-B'),
+      ],
       labs: [
         lab('01', 'Tue', 'A', 'G012-E'),
         lab('02', 'Tue', 'B', 'G014-E'),
@@ -230,7 +224,10 @@ const dsai203: Course = {
     },
     {
       name: 'Mohamed Elhalaby Elhalaby',
-      lectures: [lec('02', 'Mon', 'B', 'G033B'), lec('03', 'Mon', 'A', 'G033B')],
+      lectures: [
+        lec('02', 'Mon', 'B', 'G033B'),
+        lec('03', 'Mon', 'A', 'G033B'),
+      ],
       labs: [
         lab('05', 'Wed', 'E', 'S001-A'),
         lab('06', 'Tue', 'A', 'S001-A'),
@@ -256,18 +253,18 @@ const csai203: Course = {
   instructors: [
     {
       name: 'Mohamed Sami Rakha',
-      lectures: [lecH('01', 'Sun', 14, 16, 'G006-B')], // Sunday 2:00–3:59 PM
+      lectures: [lecH('01', 'Sun', 14, 16, 'G006-B')],
       labs: [
-        labH('01', 'Mon', 16, 18, 'G0011D'), // Monday 4:00–5:59 PM
-        labH('02', 'Mon', 8, 10, 'G014-E'), // Monday 8:00–9:59 AM
-        labH('03', 'Mon', 16, 18, 'G014-E'), // Monday 4:00–5:59 PM
-        labH('04', 'Mon', 8, 10, 'G011-E'), // Monday 8:00–9:59 AM
+        labH('01', 'Mon', 16, 18, 'G0011D'),
+        labH('02', 'Mon', 8, 10, 'G014-E'),
+        labH('03', 'Mon', 16, 18, 'G014-E'),
+        labH('04', 'Mon', 8, 10, 'G011-E'),
       ],
       tutorials: [],
     },
     {
       name: 'Sabah Sayed Sayed',
-      lectures: [], // no lecture assigned — must NOT be invented
+      lectures: [],
       labs: [
         labH('05', 'Wed', 8, 10, 'G015-E'),
         labH('06', 'Mon', 14, 16, 'G009-D'),
@@ -321,14 +318,9 @@ const phys104: Course = {
 };
 
 /* ==================================================================== */
-/* NEW (Fall additions): Year 3 & Year 4 courses for DSAI / IT / Software */
-/* All times below are exact wall-clock hours from self-service, encoded  */
-/* with the same lecH/labH/tutH helpers used for CSAI 203 and PHYS 104.   */
-/* Colors reuse/cycle the existing 1–7 palette, exactly like the original */
-/* dataset does (IT 205 and DSAI 203 both use c:5).                       */
+/* Year 3 & Year 4 courses                                               */
 /* ==================================================================== */
 
-/* ---- Shared course: DSAI Y3 + IT Y3 + Software Y3 ---- */
 const csai301: Course = {
   id: 'csai301',
   code: 'CSAI 301',
@@ -350,7 +342,6 @@ const csai301: Course = {
   ],
 };
 
-/* ---- Data Science & AI — Year 3 (Fall) ---- */
 const dsai307: Course = {
   id: 'dsai307',
   code: 'DSAI 307',
@@ -412,7 +403,6 @@ const math303: Course = {
   ],
 };
 
-/* ---- Data Science & AI — Year 4 (Fall) ---- */
 const dsai403: Course = {
   id: 'dsai403',
   code: 'DSAI 403',
@@ -494,10 +484,6 @@ const dsai456: Course = {
   ],
 };
 
-/* ---- Placeholder courses: real credits, ZERO published meetings ----
-   Confirmed to exist via official course-map documents, but self-service
-   publishes no day/time/room/instructor for them. Nothing is invented —
-   they carry only credits and a `noFixedSchedule` flag. */
 const csai498: Course = {
   id: 'csai498',
   code: 'CSAI 498',
@@ -543,7 +529,6 @@ const math205: Course = {
   ],
 };
 
-/* ---- Information Technology — Year 3 (Fall) ---- */
 const it308: Course = {
   id: 'it308',
   code: 'IT 308',
@@ -576,7 +561,6 @@ const itns301: Course = {
   ],
 };
 
-/* ---- Information Technology — Year 4 (Fall) ---- */
 const itns403: Course = {
   id: 'itns403',
   code: 'ITNS 403',
@@ -657,7 +641,6 @@ const it411: Course = {
   ],
 };
 
-/* ---- Software — Year 3 (Fall; all three concentrations merged) ---- */
 const sw301: Course = {
   id: 'sw301',
   code: 'SW 301',
@@ -669,7 +652,10 @@ const sw301: Course = {
       name: 'Instructor not assigned',
       unassigned: true,
       lectures: [lecH('01', 'Sun', 8, 10, 'G007-C')],
-      labs: [labH('01', 'Sun', 12, 14, 'F012-E'), labH('02', 'Sun', 14, 16, 'F011-D')],
+      labs: [
+        labH('01', 'Sun', 12, 14, 'F012-E'),
+        labH('02', 'Sun', 14, 16, 'F011-D'),
+      ],
       tutorials: [],
     },
   ],
@@ -717,7 +703,7 @@ const swapd301: Course = {
   instructors: [
     {
       name: 'Dina Ezzat',
-      lectures: [lecH('01', 'Wed', 14, 16, 'ZC2')], // University of Science and Technology, Academic Building ZC2
+      lectures: [lecH('01', 'Wed', 14, 16, 'ZC2')],
       labs: [labH('01', 'Wed', 8, 10, 'G014-E')],
       tutorials: [],
     },
@@ -756,7 +742,6 @@ const swhci301: Course = {
   ],
 };
 
-/* ---- Software — Year 4 (Fall; all three concentrations merged) ---- */
 const sw401: Course = {
   id: 'sw401',
   code: 'SW 401',
@@ -767,7 +752,10 @@ const sw401: Course = {
     {
       name: 'Samar Elbedwehy',
       lectures: [lecH('01', 'Sun', 10, 12, 'F008-E')],
-      labs: [labH('01', 'Mon', 14, 16, 'G016-E'), labH('02', 'Mon', 16, 18, 'G015-E')],
+      labs: [
+        labH('01', 'Mon', 14, 16, 'G016-E'),
+        labH('02', 'Mon', 16, 18, 'G015-E'),
+      ],
       tutorials: [],
     },
   ],
@@ -784,7 +772,10 @@ const swapd401: Course = {
       name: 'Instructor not assigned',
       unassigned: true,
       lectures: [lecH('01', 'Tue', 12, 14, 'F015-D')],
-      labs: [labH('01', 'Wed', 8, 10, 'G016-E'), labH('02', 'Wed', 10, 12, 'G016-E')],
+      labs: [
+        labH('01', 'Wed', 8, 10, 'G016-E'),
+        labH('02', 'Wed', 10, 12, 'G016-E'),
+      ],
       tutorials: [],
     },
   ],
@@ -799,7 +790,7 @@ const swapd402: Course = {
   instructors: [
     {
       name: 'Yousry Abdelazeem Abdelazeem',
-      lectures: [lecH('01', 'Tue', 8, 10, 'ZC2')], // University of Science and Technology, Academic Building ZC2
+      lectures: [lecH('01', 'Tue', 8, 10, 'ZC2')],
       labs: [labH('01', 'Wed', 10, 12, 'F013-E')],
       tutorials: [],
     },
@@ -865,7 +856,9 @@ const swhci401: Course = {
   instructors: [
     {
       name: 'Sherif Hamdy ElGohary',
-      lectures: [lecH('01', 'Thu', 16, 18, 'University of Science and Technology')], // no specific room code published
+      lectures: [
+        lecH('01', 'Thu', 16, 18, 'University of Science and Technology'),
+      ],
       labs: [labH('01', 'Sun', 16, 18, 'G015-E')],
       tutorials: [],
     },
@@ -888,6 +881,21 @@ const swhci402: Course = {
   ],
 };
 
+/* ==================================================================== */
+/* YEAR 1 + SCH COURSES                                                  */
+/* ==================================================================== */
+/*
+ * Add the real Year 1 and SCH Course objects here.
+ *
+ * IMPORTANT:
+ * - Do NOT invent course IDs, names, sections, instructors or schedules.
+ * - Year 1 courses will be referenced from majors.ts.
+ * - SCH courses will be referenced from COMMON_COURSE_IDS in majors.ts.
+ * - SCH courses should NOT be duplicated inside every major/year.
+ */
+
+/* =============================== COURSES ============================= */
+
 export const COURSES: Course[] = [
   csai201,
   csai202,
@@ -897,7 +905,8 @@ export const COURSES: Course[] = [
   dsai203,
   csai203,
   phys104,
-  // Year 3 / Year 4 additions (append-only — nothing above is ever touched)
+
+  // Year 3 / Year 4 additions
   csai301,
   dsai307,
   dsai308,
@@ -929,9 +938,27 @@ export const COURSES: Course[] = [
   swgcg402,
   swhci401,
   swhci402,
+
+  /*
+   * YEAR 1:
+   * Add Year 1 course constants here after creating them above.
+   *
+   * Example only:
+   * year1Course1,
+   * year1Course2,
+   *
+   * SCH:
+   * Add SCH course constants here after creating them above.
+   *
+   * Example only:
+   * sch101,
+   * sch102,
+   */
 ];
 
-export const COURSE_BY_ID: Record<string, Course> = Object.fromEntries(COURSES.map((c) => [c.id, c]));
+export const COURSE_BY_ID: Record<string, Course> = Object.fromEntries(
+  COURSES.map((c) => [c.id, c]),
+);
 
 export function instructorLabel(instr: Instructor): string {
   return instr.unassigned ? `${instr.name} (unassigned)` : instr.name;
