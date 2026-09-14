@@ -1,3 +1,4 @@
+```tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import { allYearCourseIds, MAJOR_BY_ID, yearBadgeOf, yearPlanOf } from './data/majors';
@@ -91,16 +92,18 @@ export default function App() {
     if (savedState?.majorId && MAJOR_BY_ID[savedState.majorId]) return savedState.majorId;
     return null;
   });
+
   /**
    * Selected year within the major. `null` means "not chosen yet" (the Year Picker step is
    * showing). Old saved state and old (v3) share links carry no year — they gracefully
-   * default to the major's first year ('y2') instead of crashing or emptying the list.
+   * default to the major's first year ('y1') instead of crashing or emptying the list.
    */
   const [yearId, setYearId] = useState<string | null>(() => {
-    if (urlState && MAJOR_BY_ID[urlState.majorId]) return urlState.yearId ?? 'y2';
-    if (savedState?.majorId && MAJOR_BY_ID[savedState.majorId]) return savedState.yearId ?? 'y2';
+    if (urlState && MAJOR_BY_ID[urlState.majorId]) return urlState.yearId ?? 'y1';
+    if (savedState?.majorId && MAJOR_BY_ID[savedState.majorId]) return savedState.yearId ?? 'y1';
     return null;
   });
+
   /**
    * Credit-cap SETTING: a plain integer (13/18/21) or null when never chosen. The effective
    * cap is always `creditCap ?? 21` and can never exceed 21 in any state of the app.
@@ -129,6 +132,7 @@ export default function App() {
   const [courseFilter, setCourseFilter] = useState<string>(
     () => urlState?.courseFilter ?? savedState?.courseFilter ?? 'all',
   );
+
   /**
    * Active "instructor filter" per course — a pure VIEW filter driven only by the
    * per-course pills. Picks never fix an instructor: lecture, lab and tutorial are each
@@ -140,6 +144,7 @@ export default function App() {
     if (savedState?.instructorFilter) return trimFilterToMajor(savedState.instructorFilter, savedState.majorId);
     return {};
   });
+
   const [preferences, setPreferences] = useState<SchedulePreferences>(
     // URL preferences > saved app-state preferences > legacy prefs key > defaults (validated in each loader).
     () => urlState?.preferences ?? savedState?.preferences ?? loadPreferences(),
@@ -288,6 +293,7 @@ export default function App() {
   );
 
   const isCurrentComboBest = !!best && best.key === genKey && best.index === safeIndex;
+
   const engineInSync = useMemo(() => {
     if (!generation || count === 0) return false;
     const indices = comboAt(generation, safeIndex);
@@ -308,9 +314,6 @@ export default function App() {
 
   const selectMajor = useCallback((id: string) => {
     setMajorId(id);
-    // A fresh major starts with nothing ticked — the same unselected state as Clear All.
-    // (The old behaviour of pre-ticking every course made the picker look already decided;
-    // B's "auto-fill best on first load" hid that same problem behind a pre-made schedule.)
     setPicks({});
     setInstructorFilter({});
     setCourseFilter('all');
@@ -318,7 +321,6 @@ export default function App() {
     setComboIndex(0);
     setBest(null);
     setShowMajorPicker(false);
-    // Changing major resets the year selection AND the credit-limit tier (which re-prompts).
     setYearId(null);
     setShowYearPicker(false);
     setCreditCap(null);
@@ -331,15 +333,12 @@ export default function App() {
   const selectYear = useCallback((id: string) => {
     setYearId((prev) => {
       if (prev === id) return prev;
-      // A different year starts clean, exactly like changing major: picks from the old
-      // year's list would otherwise silently keep occupying the timetable.
       setPicks({});
       setInstructorFilter({});
       setCourseFilter('all');
       setTypeFilter('All');
       setComboIndex(0);
       setBest(null);
-      // Per spec: changing year resets the credit-limit tier and re-prompts the note.
       setCreditCap(null);
       setCapNoteDismissed(false);
       setCapNotice(null);
@@ -357,7 +356,6 @@ export default function App() {
   }, []);
 
   const dismissCapNote = useCallback(() => {
-    // Dismissing without choosing keeps the default 21-credit hard ceiling active.
     setCapNoteDismissed(true);
   }, []);
 
@@ -369,15 +367,13 @@ export default function App() {
 
   const toggleCourse = useCallback((courseId: string, taking: boolean) => {
     if (taking) {
-      // CREDIT-CAP ENFORCEMENT: adding this course must never push the registered total
-      // past the active cap (≤ 21 always). Removals are always allowed — only additions block.
       if (wouldExceedCap(picksRef.current, courseId, creditCapRef.current)) {
         const cap = effectiveCreditCap(creditCapRef.current);
         setCapNotice(`This would put you over your ${cap}-credit limit. Remove a course first.`);
         setCapShake((prev) => ({ courseId, nonce: (prev?.nonce ?? 0) + 1 }));
         if (capNoticeTimer.current != null) window.clearTimeout(capNoticeTimer.current);
         capNoticeTimer.current = window.setTimeout(() => setCapNotice(null), 4000);
-        return; // the course is NOT added; the checkbox stays (or reverts to) unticked
+        return;
       }
     }
     setPicks((prev) => {
@@ -387,7 +383,6 @@ export default function App() {
       return next;
     });
     if (!taking) {
-      // The course is no longer part of the plan — drop its instructor pin with it.
       setInstructorFilter((prev) => {
         if (prev[courseId] == null) return prev;
         const next = { ...prev };
@@ -399,8 +394,6 @@ export default function App() {
 
   const clearOne = useCallback((courseId: string) => {
     setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
-    // Removing the selections also lifts the grouping they pinned, so every option
-    // becomes selectable again immediately (reversibility guarantee).
     setInstructorFilter((prev) => {
       if (prev[courseId] == null) return prev;
       const next = { ...prev };
@@ -409,7 +402,6 @@ export default function App() {
     });
   }, []);
 
-  /** Change (or clear, with null) the instructor filter pill for one course. */
   const setInstructorPinned = useCallback((courseId: string, idx: number | null) => {
     setInstructorFilter((prev) => {
       const next = { ...prev };
@@ -420,9 +412,6 @@ export default function App() {
   }, []);
 
   const performClearAll = useCallback(() => {
-    // Clears courses, sections and instructor filters, and returns the UI to the initial
-    // unselected state. The course dataset is never touched, and saved preferences are
-    // deliberately preserved (they are independent user settings, not schedule state).
     setPicks({});
     setInstructorFilter({});
     setComboIndex(0);
@@ -434,7 +423,6 @@ export default function App() {
 
   const requestClearAll = useCallback(() => setConfirmClearOpen(true), []);
 
-  /** Adopt a Best-Schedule result as the active manual selection — same shape as applyCombo. */
   const useGeneratedSchedule = useCallback((schedule: GeneratedSchedule) => {
     setPicks((prev) => {
       const next: PickState = { ...prev };
@@ -447,8 +435,7 @@ export default function App() {
       });
       return next;
     });
-    // Record each course's instructor immediately so the filter is shareable right away,
-    // without waiting for the sync effect.
+
     setInstructorFilter((prev) => {
       const next = { ...prev };
       schedule.perCourse.forEach(({ course, instructorIdx }) => {
@@ -456,13 +443,13 @@ export default function App() {
       });
       return next;
     });
+
     setComboIndex(0);
     setBest(null);
   }, []);
 
   const autoFill = useCallback(() => {
     if (!generation) return;
-    // One implementation of "best", bounded so it can never freeze on huge result sets.
     const result = findBestCombo(generation);
     if (!result) return;
     applyCombo(result.index);
@@ -530,8 +517,6 @@ export default function App() {
         return acc;
       }, [])
       .concat(
-        // No-fixed-schedule courses still appear in Schedule Details — with zero meetings,
-        // which triggers the existing "No scheduled meetings for this instructor" note.
         takenCourses
           .filter((c) => c.noFixedSchedule)
           .map((course) => ({
@@ -545,20 +530,13 @@ export default function App() {
 
   const metrics = useMemo(() => measureSchedule(draft.map((d) => d.meeting)), [draft]);
 
-  /* ---------------- Schedule Credits Dashboard ---------------- */
   const totalCredits = useMemo(
     () => takenCourses.reduce((sum, c) => sum + (c.credits ?? 0), 0),
     [takenCourses],
   );
-  /**
-   * Free Time = available schedule-window time − actual occupied class time.
-   * `computeFreeTime` unions each day's real intervals, so a 1-hour class occupies exactly
-   * 1 hour, 1.5-hour classes occupy 1.5 hours, and two overlapping classes only occupy the
-   * shared time once (a student cannot be in two rooms at once).
-   */
+
   const freeTime = useMemo(() => computeFreeTime(draft.map((d) => d.meeting)), [draft]);
 
-  /* ---------------- Smart dynamic filtering summary ---------------- */
   const hiddenSummary = useMemo(
     () =>
       mergeHiddenSummaries(
@@ -624,6 +602,7 @@ export default function App() {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2200);
     };
+
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(done).catch(() => {});
     } else {
@@ -631,12 +610,14 @@ export default function App() {
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
+
       try {
         document.execCommand('copy');
         done();
       } catch {
         /* ignore */
       }
+
       document.body.removeChild(ta);
     }
   }, [detailEntries, metrics]);
@@ -660,15 +641,18 @@ export default function App() {
               intervals decide conflicts — a 2:00–2:59 session next to a 3:00–3:59 session is fine, clashing ones are not.
             </p>
           </div>
+
           <div className="flex flex-none flex-wrap items-center gap-2">
             {major && !showAbout && (
               <span className="pill hidden sm:inline-flex" style={{ color: 'var(--accent)' }}>
                 {major.title}
               </span>
             )}
+
             <button type="button" className="btn btn-tap" onClick={showAbout ? closeAbout : openAbout}>
               {showAbout ? '‹ Planner' : 'ℹ️ About'}
             </button>
+
             <ThemeToggle theme={theme} onChange={setTheme} />
           </div>
         </header>
@@ -682,11 +666,14 @@ export default function App() {
               title="Choose a major to begin planning your semester."
               message="Your major decides which courses appear below. Information Technology and Data Science & AI share CSAI 205 plus one elective slot, while Software replaces those with CSAI 203 and PHYS 104."
             />
+
             <section className="panel p-4 sm:p-5">
               <h2 className="text-[13px] font-bold tracking-tight">Choose Your Major</h2>
+
               <p className="mb-4 mt-1 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
                 Three configurations, five courses each.
               </p>
+
               <MajorPicker selectedId={null} onSelect={selectMajor} />
             </section>
           </div>
@@ -698,6 +685,7 @@ export default function App() {
                   <span className="pill" style={{ color: 'var(--accent)' }}>
                     Major
                   </span>
+
                   <div>
                     <p className="text-[13.5px] font-bold leading-tight">{major.title}</p>
                     <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
@@ -705,22 +693,32 @@ export default function App() {
                     </p>
                   </div>
                 </div>
-                <button type="button" className="btn btn-tap" onClick={() => setShowMajorPicker((v) => !v)} aria-expanded={showMajorPicker}>
+
+                <button
+                  type="button"
+                  className="btn btn-tap"
+                  onClick={() => setShowMajorPicker((v) => !v)}
+                  aria-expanded={showMajorPicker}
+                >
                   {showMajorPicker ? 'Hide majors' : 'Change major'}
                 </button>
               </div>
+
               {showMajorPicker && (
                 <div className="mt-3">
                   <MajorPicker selectedId={majorId} onSelect={selectMajor} compact />
                 </div>
               )}
             </section>
+
             <section className="panel p-4 sm:p-5">
               <h2 className="text-[13px] font-bold tracking-tight">Choose Your Year</h2>
+
               <p className="mb-4 mt-1 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
                 Pick the academic year you're planning — its course list appears next. You can still add courses from
                 the other years afterwards.
               </p>
+
               <YearPicker major={major} selectedYearId={yearId} onSelect={selectYear} />
             </section>
           </div>
@@ -732,6 +730,7 @@ export default function App() {
                   <span className="pill" style={{ color: 'var(--accent)' }}>
                     Major
                   </span>
+
                   <div>
                     <p className="text-[13.5px] font-bold leading-tight">{major.title}</p>
                     <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
@@ -739,6 +738,7 @@ export default function App() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex flex-wrap items-center gap-2">
                   <label
                     className="flex cursor-pointer items-center gap-1.5 text-[11.5px]"
@@ -751,15 +751,29 @@ export default function App() {
                       checked={requireComplete}
                       onChange={(e) => setRequireComplete(e.target.checked)}
                     />
+
                     <span className="hidden sm:inline">Flag incomplete groups</span>
                     <span className="sm:hidden">Flag incomplete</span>
                   </label>
-                  <button type="button" className="btn btn-tap" onClick={() => setShowMajorPicker((v) => !v)} aria-expanded={showMajorPicker}>
+
+                  <button
+                    type="button"
+                    className="btn btn-tap"
+                    onClick={() => setShowMajorPicker((v) => !v)}
+                    aria-expanded={showMajorPicker}
+                  >
                     {showMajorPicker ? 'Hide majors' : 'Change major'}
                   </button>
-                  <button type="button" className="btn btn-tap" onClick={() => setShowYearPicker((v) => !v)} aria-expanded={showYearPicker}>
+
+                  <button
+                    type="button"
+                    className="btn btn-tap"
+                    onClick={() => setShowYearPicker((v) => !v)}
+                    aria-expanded={showYearPicker}
+                  >
                     {showYearPicker ? 'Hide years' : 'Change year'}
                   </button>
+
                   <button
                     type="button"
                     className="btn btn-tap"
@@ -769,6 +783,7 @@ export default function App() {
                   >
                     Clear All
                   </button>
+
                   <ShareSchedule
                     majorId={majorId!}
                     courses={courses}
@@ -785,11 +800,13 @@ export default function App() {
                   />
                 </div>
               </div>
+
               {showMajorPicker && (
                 <div className="mt-3">
                   <MajorPicker selectedId={majorId} onSelect={selectMajor} compact />
                 </div>
               )}
+
               {showYearPicker && (
                 <div className="mt-3">
                   <YearPicker major={major} selectedYearId={yearId} onSelect={selectYear} compact />
@@ -858,7 +875,11 @@ export default function App() {
                     {overlapsFound.length > 0 && (
                       <div
                         className="rounded-xl border px-3.5 py-3 text-[12px] leading-relaxed"
-                        style={{ borderColor: 'var(--warn-line)', background: 'color-mix(in srgb, var(--warn-bg) 55%, var(--paper))', color: 'var(--warn)' }}
+                        style={{
+                          borderColor: 'var(--warn-line)',
+                          background: 'color-mix(in srgb, var(--warn-bg) 55%, var(--paper))',
+                          color: 'var(--warn)',
+                        }}
                         role="alert"
                       >
                         <strong>
@@ -866,6 +887,7 @@ export default function App() {
                         </strong>{' '}
                         The overlapping blocks are outlined in red on the timetable. Change one of the times, or browse a
                         generated combination instead.
+
                         {generation && storedCount > 0 && (
                           <span className="mt-1 block">
                             {count.toLocaleString()} conflict-free combination{count === 1 ? '' : 's'} exist
@@ -877,9 +899,13 @@ export default function App() {
 
                     {issues.length > 0 && (
                       <div className="panel-soft px-3.5 py-3" aria-live="polite">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.06em]" style={{ color: 'var(--muted-2)' }}>
+                        <p
+                          className="text-[11px] font-bold uppercase tracking-[0.06em]"
+                          style={{ color: 'var(--muted-2)' }}
+                        >
                           Still to decide
                         </p>
+
                         <ul className="mt-1.5 space-y-1">
                           {issues.map((issue, i) => (
                             <li key={i} className="text-[12px] leading-snug" style={{ color: 'var(--muted)' }}>
@@ -893,7 +919,11 @@ export default function App() {
                     {ready && (
                       <div
                         className="rounded-xl border-2 px-4 py-3 text-center text-[13.5px] font-bold"
-                        style={{ borderColor: 'var(--ok)', background: 'color-mix(in srgb, var(--ok) 12%, var(--paper))', color: 'var(--ok)' }}
+                        style={{
+                          borderColor: 'var(--ok)',
+                          background: 'color-mix(in srgb, var(--ok) 12%, var(--paper))',
+                          color: 'var(--ok)',
+                        }}
                         role="status"
                       >
                         ✓ Ready to register — this selection has no time conflicts.
@@ -945,7 +975,9 @@ export default function App() {
                           truncated={generation?.truncated ?? false}
                           countCapped={generation?.countCapped ?? false}
                         />
+
                         <ScheduleDetails entries={detailEntries} yearBadges={yearBadges} />
+
                         <EngineAudit combos={count} truncated={generation?.truncated ?? false} />
 
                         <div className="panel flex flex-wrap items-center gap-2 p-3">
@@ -963,12 +995,15 @@ export default function App() {
                               conflictFree: takenCourses.length > 0 && noConflicts,
                             }}
                           />
+
                           <button type="button" className="btn btn-tap" onClick={() => window.print()} disabled={!canExport}>
                             Print / Save PDF
                           </button>
+
                           <button type="button" className="btn btn-tap" onClick={copySummary} disabled={!canExport}>
                             {copied ? '✓ Copied' : 'Copy summary'}
                           </button>
+
                           <button
                             type="button"
                             className="btn btn-tap"
@@ -977,6 +1012,7 @@ export default function App() {
                           >
                             Clear All
                           </button>
+
                           {engineInSync && (
                             <span className="pill ml-auto" style={{ color: 'var(--ok)' }}>
                               ✓ matches combination {safeIndex + 1}
@@ -984,10 +1020,14 @@ export default function App() {
                           )}
                         </div>
 
-                        <p className="px-1 text-center text-[11px] leading-relaxed" style={{ color: 'var(--muted-2)' }}>
-                          Conflict rule: two meetings clash only on the same day when <span className="mono">startA &lt; endB</span> and{' '}
-                          <span className="mono">startB &lt; endA</span> — back-to-back sessions (2:00–2:59 then 3:00–3:59) are allowed,
-                          while 2:00–3:59 and 3:00–4:59 clash. Non-credit tutorials and labs still count. Use ← / → to browse.
+                        <p
+                          className="px-1 text-center text-[11px] leading-relaxed"
+                          style={{ color: 'var(--muted-2)' }}
+                        >
+                          Conflict rule: two meetings clash only on the same day when{' '}
+                          <span className="mono">startA &lt; endB</span> and <span className="mono">startB &lt; endA</span> —
+                          back-to-back sessions (2:00–2:59 then 3:00–3:59) are allowed, while 2:00–3:59 and 3:00–4:59 clash.
+                          Non-credit tutorials and labs still count. Use ← / → to browse.
                         </p>
                       </>
                     )}
@@ -998,13 +1038,22 @@ export default function App() {
           </div>
         )}
 
-        <footer className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-center text-[11px]" style={{ color: 'var(--muted-2)' }}>
+        <footer
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-center text-[11px]"
+          style={{ color: 'var(--muted-2)' }}
+        >
           <span>Zewail City Schedule Builder · Version 2.1</span>
           <span aria-hidden>·</span>
-          <button type="button" className="underline decoration-dotted underline-offset-2" onClick={showAbout ? closeAbout : openAbout}>
+
+          <button
+            type="button"
+            className="underline decoration-dotted underline-offset-2"
+            onClick={showAbout ? closeAbout : openAbout}
+          >
             About &amp; GitHub
           </button>
         </footer>
+
         <p
           className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.14em]"
           style={{ color: 'var(--accent)' }}
@@ -1020,9 +1069,11 @@ export default function App() {
           <button type="button" className="btn btn-accent btn-tap flex-1" onClick={scrollToBestSchedule}>
             ✦ Best Schedule
           </button>
+
           <button type="button" className="btn btn-tap flex-1" onClick={() => setPrefsOpen(true)}>
             ⚙ Preferences
           </button>
+
           <ShareSchedule
             majorId={majorId!}
             courses={courses}
@@ -1064,14 +1115,17 @@ export default function App() {
         >
           <div className="panel w-full max-w-[420px] rounded-b-none p-5 sm:rounded-2xl">
             <h2 className="text-[15px] font-bold tracking-tight">Clear entire schedule?</h2>
+
             <p className="mt-2 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               This will remove all selected courses, sections and instructor filters. Your saved schedule preferences
               won't be affected.
             </p>
+
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button type="button" className="btn btn-tap" onClick={() => setConfirmClearOpen(false)}>
                 Cancel
               </button>
+
               <button
                 type="button"
                 className="btn btn-tap"
