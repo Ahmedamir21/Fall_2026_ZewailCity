@@ -68,7 +68,7 @@ const csai201: Course = {
     },
     {
       name: 'Mohamed Elhalaby Elhalaby',
-      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'G011-B')],
+      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'F019-E'')],
       labs: [
         lab('05', 'Wed', 'E', 'G013-E'),
         lab('06', 'Wed', 'D', 'G014-E'),
@@ -93,7 +93,10 @@ const csai202: Course = {
   instructors: [
     {
       name: 'Yousry Abdelazeem Abdelazeem',
-      lectures: [lec('01', 'Mon', 'B', 'G038B'), lec('02', 'Mon', 'E', 'G038B')],
+      lectures: [
+        lec('01', 'Mon', 'B', 'G038B'),
+        lec('02', 'Mon', 'E', 'G038B'),
+      ],
       labs: [
         lab('01', 'Tue', 'D', 'G011-E'),
         lab('02', 'Tue', 'B', 'G011-E'),
@@ -108,10 +111,24 @@ const csai202: Course = {
     },
     {
       name: 'Ashraf Hendam Hendam',
-      lectures: [lec('03', 'Sun', 'B', 'G033B')],
+      lectures: [
+        lec('03', 'Sun', 'B', 'G033B'),
+      ],
       labs: [],
       tutorials: [],
-      note: 'No confirmed lab under this instructor — sections 09–12 still show "unannounced" instructor in self-service',
+    },
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [
+        lab('09', 'Tue', 'C', 'G012-E'),
+        lab('10', 'Tue', 'D', 'G012-E'),
+        lab('11', 'Wed', 'A', 'G013-E'),
+        lab('12', 'Sun', 'E', 'G0011D'),
+      ],
+      tutorials: [],
+      note: 'Instructor has not yet been assigned to lab sections 09–12.',
     },
   ],
 };
