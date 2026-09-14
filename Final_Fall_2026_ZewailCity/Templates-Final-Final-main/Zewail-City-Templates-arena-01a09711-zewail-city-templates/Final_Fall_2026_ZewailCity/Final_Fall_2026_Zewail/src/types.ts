@@ -1,3 +1,4 @@
+```ts
 export type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu';
 
 /** 'Lecture' | 'Lab' | 'Tutorial' */
@@ -52,10 +53,10 @@ export interface Course {
   instructors: Instructor[];
 }
 
-/** One academic year's course list inside a major (there is no Year 1 in this app). */
+/** One academic year's course list inside a major. */
 export interface YearPlan {
-  id: string; // 'y2' | 'y3' | 'y4'
-  label: string; // "Year 2 (Sophomore)" | "Year 3 (Junior)" | "Year 4 (Senior)"
+  id: string; // 'y1' | 'y2' | 'y3' | 'y4'
+  label: string; // "Year 1 (Freshman)" | "Year 2 (Sophomore)" | "Year 3 (Junior)" | "Year 4 (Senior)"
   courseIds: string[];
 }
 
@@ -107,3 +108,4 @@ export interface GenerationResult {
    */
   pairingsByCourse: Record<string, Pairing[]>;
 }
+```
