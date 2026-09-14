@@ -1,4 +1,3 @@
-```tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import {
@@ -1437,4 +1436,3 @@ export default function App() {
     </div>
   );
 }
-```
