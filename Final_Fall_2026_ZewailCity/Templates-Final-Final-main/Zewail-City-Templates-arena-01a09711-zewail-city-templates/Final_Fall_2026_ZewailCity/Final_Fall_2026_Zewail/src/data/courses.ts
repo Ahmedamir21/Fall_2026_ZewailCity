@@ -1,4 +1,5 @@
 import type { Course, Day, Instructor, Meeting, MeetingType } from '../types';
+import { SCH_ELECTIVE_COURSES } from './schElectives';
 
 /**
  * Time encoding
@@ -881,18 +882,370 @@ const swhci402: Course = {
   ],
 };
 
+
 /* ==================================================================== */
 /* YEAR 1 + SCH COURSES                                                  */
 /* ==================================================================== */
-/*
- * Add the real Year 1 and SCH Course objects here.
- *
- * IMPORTANT:
- * - Do NOT invent course IDs, names, sections, instructors or schedules.
- * - Year 1 courses will be referenced from majors.ts.
- * - SCH courses will be referenced from COMMON_COURSE_IDS in majors.ts.
- * - SCH courses should NOT be duplicated inside every major/year.
- */
+
+const csai101: Course = {
+  id: 'csai101',
+  code: 'CSAI 101',
+  name: 'Fundamentals of Programming and Computer Science',
+  c: 1,
+  credits: 2,
+  instructors: [
+    {
+      name: 'Ghada Dahy',
+      lectures: [
+        lecH('03', 'Wed', 8, 10, 'G033B'),
+        lecH('04', 'Wed', 10, 12, 'G033B'),
+      ],
+      labs: [
+        labH('07', 'Wed', 10, 12, 'G0012D'),
+        labH('08', 'Wed', 10, 12, 'G007D'),
+        labH('09', 'Mon', 10, 12, 'G015-D'),
+        labH('10', 'Tue', 14, 16, 'G009-D'),
+        labH('11', 'Sun', 12, 14, 'G012-E'),
+        labH('12', 'Sun', 12, 14, 'G011-E'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Ibrahim Eldesouky',
+      lectures: [
+        lecH('06', 'Tue', 10, 12, 'G033B'),
+        lecH('07', 'Tue', 12, 14, 'G033B'),
+      ],
+      labs: [
+        labH('16', 'Sun', 12, 14, 'G0011D'),
+        labH('17', 'Sun', 12, 14, 'G0012D'),
+        labH('18', 'Sun', 8, 10, 'G0012D'),
+        labH('19', 'Sun', 14, 16, 'G0011D'),
+        labH('20', 'Sun', 14, 16, 'G0010D'),
+      ],
+      tutorials: [],
+    },
+  ],
+};
+
+const csai102: Course = {
+  id: 'csai102',
+  code: 'CSAI 102',
+  name: 'Digital Logic and Computer Architecture',
+  c: 2,
+  credits: 3,
+  instructors: [
+    {
+      name: 'Elmahdy Maree Maree',
+      lectures: [
+        lecH('03', 'Sun', 12, 14, 'F005-F'),
+        lecH('04', 'Sun', 14, 16, 'G019-B'),
+      ],
+      labs: [
+        labH('07', 'Tue', 14, 16, 'G016-E'),
+        labH('08', 'Wed', 16, 18, 'G008-E'),
+        labH('09', 'Wed', 10, 12, 'G020-E'),
+        labH('10', 'Mon', 10, 12, 'G020-E'),
+        labH('11', 'Mon', 10, 12, 'G008-E'),
+        labH('12', 'Mon', 16, 18, 'G008-E'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Mohamed Ghalwash',
+      lectures: [lecH('06', 'Tue', 12, 14, 'G025B')],
+      labs: [
+        labH('16', 'Sun', 14, 16, 'G020-E'),
+        labH('17', 'Sun', 8, 10, 'G020-E'),
+        labH('18', 'Sun', 12, 14, 'G020-E'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Ibrahim Swelam',
+      lectures: [lecH('07', 'Sun', 12, 14, 'G011-B')],
+      labs: [
+        labH('19', 'Tue', 8, 10, 'G016-E'),
+        labH('20', 'Mon', 8, 10, 'G020-E'),
+      ],
+      tutorials: [],
+    },
+  ],
+};
+
+const csai252: Course = {
+  id: 'csai252',
+  code: 'CSAI 252',
+  name: 'Introduction to Computer Networks',
+  c: 3,
+  credits: 3,
+  instructors: [
+    {
+      name: 'Heba Aty Aty',
+      lectures: [
+        lecH('03', 'Wed', 14, 16, 'G011-B'),
+        lecH('04', 'Wed', 8, 10, 'G019-B'),
+        lecH('06', 'Wed', 10, 12, 'F30-B4'),
+      ],
+      labs: [
+        labH('07', 'Sun', 10, 12, 'G012-E'),
+        labH('08', 'Sun', 8, 10, 'G013-E'),
+        labH('09', 'Sun', 10, 12, 'G013-E'),
+        labH('10', 'Mon', 16, 18, 'G011-E'),
+        labH('11', 'Mon', 14, 16, 'G011-E'),
+        labH('12', 'Mon', 14, 16, 'G012-E'),
+        labH('16', 'Mon', 10, 12, 'G012-E'),
+        labH('17', 'Mon', 16, 18, 'G013-E'),
+        labH('18', 'Mon', 10, 12, 'G013-E'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Tarek Mohamed Salem',
+      lectures: [lecH('07', 'Thu', 10, 12, 'Online')],
+      labs: [],
+      tutorials: [],
+      note: 'Online lecture — no lab published under this instructor.',
+    },
+    {
+      name: 'Mohamed ElMikaty',
+      lectures: [],
+      labs: [
+        labH('19', 'Mon', 8, 10, 'G013-E'),
+        labH('20', 'Sun', 10, 12, 'G014-E'),
+        labH('21', 'Wed', 14, 16, 'G0010D'),
+      ],
+      tutorials: [],
+      note: 'No lecture assigned to this instructor in self-service — lab sections only.',
+    },
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [
+        labH('22', 'Sun', 14, 16, 'G014-E'),
+        labH('23', 'Mon', 10, 12, 'G014-E'),
+      ],
+      tutorials: [],
+      note: 'Sections listed without an instructor in self-service — kept together exactly as published.',
+    },
+  ],
+};
+
+const csai100: Course = {
+  id: 'csai100',
+  code: 'CSAI 100',
+  name: 'Intro to Computational Science and AI',
+  c: 6,
+  credits: 1,
+  instructors: [
+    {
+      name: 'Khaled El Sayed El Sayed',
+      lectures: [lecH('01', 'Wed', 11, 12, 'G008-C')],
+      labs: [],
+      tutorials: [],
+    },
+  ],
+};
+
+const math104: Course = {
+  id: 'math104',
+  code: 'MATH 104',
+  name: 'Linear Algebra',
+  c: 1,
+  credits: 3,
+  instructors: [
+    {
+      name: 'Waleed Abdel Magued',
+      lectures: [lecH('01', 'Sun', 14, 16, 'G025B')],
+      labs: [],
+      tutorials: [
+        tutH('01', 'Mon', 8, 10, 'F012-D'),
+        tutH('02', 'Sun', 16, 18, 'F012-D'),
+        tutH('03', 'Tue', 12, 14, 'F011-E'),
+      ],
+    },
+    {
+      name: 'Mohamed Fawzy Fawzy',
+      lectures: [lecH('02', 'Wed', 16, 18, 'G025B')],
+      labs: [],
+      tutorials: [
+        tutH('04', 'Sun', 12, 14, 'F009-D'),
+        tutH('05', 'Sun', 12, 14, 'F014-E'),
+        tutH('06', 'Mon', 8, 10, 'F013-E'),
+      ],
+    },
+  ],
+};
+
+const dsai104: Course = {
+  id: 'dsai104',
+  code: 'DSAI 104',
+  name: 'Knowledge Representation and Reasoning',
+  c: 4,
+  credits: 2,
+  instructors: [
+    {
+      name: 'Saeed Mohsen',
+      lectures: [lecH('01', 'Tue', 14, 16, 'F29-B4')],
+      labs: [labH('01', 'Sun', 10, 12, 'G011-E')],
+      tutorials: [],
+    },
+  ],
+};
+
+const math103: Course = {
+  id: 'math103',
+  code: 'MATH 103',
+  name: 'Calculus for Computational Sciences',
+  c: 1,
+  credits: 3,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the program course map (3 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const csai151: Course = {
+  id: 'csai151',
+  code: 'CSAI 151',
+  name: 'Object-Oriented Programming',
+  c: 2,
+  credits: 3,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the program course map (3 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const it101: Course = {
+  id: 'it101',
+  code: 'IT 101',
+  name: 'Shell and Script Programming with UNIX',
+  c: 3,
+  credits: 2,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const it102: Course = {
+  id: 'it102',
+  code: 'IT 102',
+  name: 'Ethical Hacking and Defense',
+  c: 5,
+  credits: 2,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const it103: Course = {
+  id: 'it103',
+  code: 'IT 103',
+  name: 'Fundamentals of Information and Communication Systems',
+  c: 6,
+  credits: 2,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const dsai103: Course = {
+  id: 'dsai103',
+  code: 'DSAI 103',
+  name: 'Data Acquisition in Data Science (ETL)',
+  c: 2,
+  credits: 3,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the program course map (3 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const sw151: Course = {
+  id: 'sw151',
+  code: 'SW 151',
+  name: 'Computer Architecture and Organization',
+  c: 4,
+  credits: 3,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the Software program course map (3 Cr); nothing is invented.',
+    },
+  ],
+};
+
+const phys103: Course = {
+  id: 'phys103',
+  code: 'PHYS 103',
+  name: 'Physics 1',
+  c: 1,
+  credits: 3,
+  noFixedSchedule: true,
+  instructors: [
+    {
+      name: 'Instructor not assigned',
+      unassigned: true,
+      lectures: [],
+      labs: [],
+      tutorials: [],
+      note: 'Not published in self-service — listed only in the Software program course map (3 Cr); nothing is invented.',
+    },
+  ],
+};
+
 
 /* =============================== COURSES ============================= */
 
@@ -905,6 +1258,21 @@ export const COURSES: Course[] = [
   dsai203,
   csai203,
   phys104,
+
+  csai101,
+  csai102,
+  csai252,
+  csai100,
+  math104,
+  dsai104,
+  math103,
+  csai151,
+  it101,
+  it102,
+  it103,
+  dsai103,
+  sw151,
+  phys103,
 
   // Year 3 / Year 4 additions
   csai301,
@@ -939,21 +1307,7 @@ export const COURSES: Course[] = [
   swhci401,
   swhci402,
 
-  /*
-   * YEAR 1:
-   * Add Year 1 course constants here after creating them above.
-   *
-   * Example only:
-   * year1Course1,
-   * year1Course2,
-   *
-   * SCH:
-   * Add SCH course constants here after creating them above.
-   *
-   * Example only:
-   * sch101,
-   * sch102,
-   */
+  ...SCH_ELECTIVE_COURSES,
 ];
 
 export const COURSE_BY_ID: Record<string, Course> = Object.fromEntries(
