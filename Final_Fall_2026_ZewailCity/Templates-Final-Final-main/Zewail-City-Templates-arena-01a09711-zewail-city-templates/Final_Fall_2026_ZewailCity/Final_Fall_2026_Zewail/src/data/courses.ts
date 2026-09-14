@@ -68,7 +68,7 @@ const csai201: Course = {
     },
     {
       name: 'Mohamed Elhalaby Elhalaby',
-      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'B', 'G011-B')],
+      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'G011-B')],
       labs: [
         lab('05', 'Wed', 'E', 'G013-E'),
         lab('06', 'Wed', 'D', 'G014-E'),
