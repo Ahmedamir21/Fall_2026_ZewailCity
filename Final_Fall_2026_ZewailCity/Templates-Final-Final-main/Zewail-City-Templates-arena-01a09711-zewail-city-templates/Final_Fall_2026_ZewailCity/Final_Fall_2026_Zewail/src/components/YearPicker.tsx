@@ -1,4 +1,4 @@
-```tsx
+
 import type { Major } from '../types';
 import { COURSE_BY_ID } from '../data/courses';
 
@@ -85,6 +85,3 @@ export function YearPicker({ major, selectedYearId, onSelect, compact = false }:
     </div>
   );
 }
-```
-
-**احفظ بس دلوقتي.** متعملش `build` ولا `push` ولا `deploy` لسه. الخطوة اللي بعدها هنراجع الملف المسؤول عن الـ default year والـ state عشان نتأكد إن Year 1 مش هتكسر الـ saved/shared schedules.
