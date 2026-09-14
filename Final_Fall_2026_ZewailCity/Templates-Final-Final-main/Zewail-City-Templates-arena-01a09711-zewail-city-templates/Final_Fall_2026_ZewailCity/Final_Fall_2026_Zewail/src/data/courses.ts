@@ -185,7 +185,7 @@ const it205: Course = {
   instructors: [
     {
       name: 'Mohamed Mahdy',
-      lectures: [lec('01', 'Mon', 'B', 'F25-B4')],
+      lectures: [lec('01', 'Wed', 'A', 'F25-B4')],
       labs: [lab('01', 'Mon', 'D', 'S043-E')],
       tutorials: [],
     },
