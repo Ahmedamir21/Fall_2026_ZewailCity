@@ -506,15 +506,22 @@ const math205: Course = {
   name: 'Discrete Mathematics for Computational Sciences',
   c: 5,
   credits: 3,
-  noFixedSchedule: true,
   instructors: [
+    {
+      name: 'Ahmed Etman Etman',
+      lectures: [lecH('01', 'Wed', 10, 12, 'F012-D')],
+      labs: [],
+      tutorials: [],
+    },
     {
       name: 'Instructor not assigned',
       unassigned: true,
       lectures: [],
       labs: [],
-      tutorials: [],
-      note: 'Not published in self-service — no day/time/room/instructor data exists; nothing is invented.',
+      tutorials: [
+        tutH('01', 'Sun', 14, 16, 'F007-D'),
+      ],
+      note: 'Tutorial instructor has not yet been assigned.',
     },
   ],
 };
