@@ -1,3 +1,4 @@
+```tsx
 import type { Major } from '../types';
 import { COURSE_BY_ID } from '../data/courses';
 
@@ -10,12 +11,12 @@ interface Props {
 
 /**
  * Year selection step — shown right after a major is picked, before the course picker.
- * Mirrors the MajorPicker card pattern: three selectable cards, one per YearPlan
- * (Year 2 / Year 3 / Year 4 — there is no Year 1 in this app).
+ * Mirrors the MajorPicker card pattern: one selectable card per YearPlan
+ * (Year 1 / Year 2 / Year 3 / Year 4).
  */
 export function YearPicker({ major, selectedYearId, onSelect, compact = false }: Props) {
   return (
-    <div className={compact ? 'grid gap-2 sm:grid-cols-3' : 'grid gap-3 sm:grid-cols-3'}>
+    <div className={compact ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'}>
       {major.years.map((year) => {
         const selected = selectedYearId === year.id;
         return (
@@ -84,3 +85,6 @@ export function YearPicker({ major, selectedYearId, onSelect, compact = false }:
     </div>
   );
 }
+```
+
+**احفظ بس دلوقتي.** متعملش `build` ولا `push` ولا `deploy` لسه. الخطوة اللي بعدها هنراجع الملف المسؤول عن الـ default year والـ state عشان نتأكد إن Year 1 مش هتكسر الـ saved/shared schedules.
