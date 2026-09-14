@@ -68,7 +68,7 @@ const csai201: Course = {
     },
     {
       name: 'Mohamed Elhalaby Elhalaby',
-      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'F019-E'')],
+      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'F019-E')],
       labs: [
         lab('05', 'Wed', 'E', 'G013-E'),
         lab('06', 'Wed', 'D', 'G014-E'),
@@ -303,18 +303,18 @@ const phys104: Course = {
   instructors: [
     {
       name: 'Ashraf Abdelwahed',
-      lectures: [lecH('01', 'Tue', 12, 14, 'F027B1')], // Tuesday 12:00–1:59 PM · 3 credits
+      lectures: [lecH('01', 'Tue', 12, 14, 'F027B1')],
       tutorials: [
-        tutH('01', 'Sun', 8, 9, 'F026B1'), // 8:00–8:59 AM
-        tutH('02', 'Sun', 9, 10, 'F026B1'), // 9:00–9:59 AM
-        tutH('03', 'Mon', 15, 16, 'F004-D'), // 3:00–3:59 PM
-        tutH('04', 'Mon', 14, 15, 'F014-E'), // 2:00–2:59 PM
+        tutH('01', 'Sun', 8, 9, 'F026B1'),
+        tutH('02', 'Sun', 9, 10, 'F026B1'),
+        tutH('03', 'Mon', 15, 16, 'F004-D'),
+        tutH('04', 'Mon', 14, 15, 'F014-E'),
       ],
       labs: [
-        labH('01', 'Mon', 10, 12, 'S31-B1'), // 10:00–11:59 AM
-        labH('02', 'Mon', 14, 16, 'S31-B1'), // 2:00–3:59 PM
-        labH('03', 'Sun', 10, 12, 'S31-B1'), // 10:00–11:59 AM
-        labH('04', 'Mon', 15, 17, 'S20-B2'), // 3:00–4:59 PM
+        labH('01', 'Mon', 10, 12, 'S26-B3'),
+        labH('02', 'Mon', 14, 16, 'S26-B3'),
+        labH('03', 'Sun', 10, 12, 'S26-B3'),
+        labH('04', 'Sun', 14, 16, 'S26-B3'),
       ],
     },
   ],
