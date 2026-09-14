@@ -1,4 +1,4 @@
-```ts
+
 import type { Major, YearPlan } from '../types';
 import { SCH_ELECTIVE_COURSE_IDS } from './schElectives';
 
@@ -189,4 +189,3 @@ export function yearBadgeOf(
   const year = major.years.find((y) => y.courseIds.includes(courseId));
   return year ? year.label.replace(/\s*\(.*\)$/, '') : null;
 }
-```
