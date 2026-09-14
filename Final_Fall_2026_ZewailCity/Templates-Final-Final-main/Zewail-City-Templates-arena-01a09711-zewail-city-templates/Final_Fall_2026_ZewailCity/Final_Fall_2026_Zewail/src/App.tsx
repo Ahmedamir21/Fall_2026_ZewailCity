@@ -1,7 +1,14 @@
 ```tsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
-import { allYearCourseIds, MAJOR_BY_ID, yearBadgeOf, yearPlanOf } from './data/majors';
+import {
+  allAvailableCourseIds,
+  allYearCourseIds,
+  COMMON_COURSE_IDS,
+  MAJOR_BY_ID,
+  yearBadgeOf,
+  yearPlanOf,
+} from './data/majors';
 import {
   buildCoursePairings,
   comboAt,
@@ -53,11 +60,13 @@ function isAboutHash(): boolean {
 /**
  * Keep only picks for courses that actually belong to the chosen major — ANY of its years,
  * since the cross-year browser legitimately adds courses from other years of the same major.
+ *
+ * Common courses (e.g. SCH) are also allowed because they are available to every major/year.
  */
 function trimPicksToMajor(picks: PickState, majorId: string | null): PickState {
   if (!majorId) return {};
   const mj = MAJOR_BY_ID[majorId];
-  const allowed = new Set(mj ? allYearCourseIds(mj) : []);
+  const allowed = new Set(mj ? allAvailableCourseIds(mj) : []);
   const out: PickState = {};
   Object.entries(picks).forEach(([courseId, pick]) => {
     if (allowed.has(courseId) && COURSE_BY_ID[courseId]) out[courseId] = pick;
@@ -65,20 +74,26 @@ function trimPicksToMajor(picks: PickState, majorId: string | null): PickState {
   return out;
 }
 
-function trimFilterToMajor(filter: Record<string, number>, majorId: string | null): Record<string, number> {
+function trimFilterToMajor(
+  filter: Record<string, number>,
+  majorId: string | null,
+): Record<string, number> {
   if (!majorId) return {};
   const mj = MAJOR_BY_ID[majorId];
-  const allowed = new Set(mj ? allYearCourseIds(mj) : []);
+  const allowed = new Set(mj ? allAvailableCourseIds(mj) : []);
   const out: Record<string, number> = {};
   Object.entries(filter).forEach(([courseId, idx]) => {
     const course = COURSE_BY_ID[courseId];
-    if (allowed.has(courseId) && course && idx >= 0 && idx < course.instructors.length) out[courseId] = idx;
+    if (allowed.has(courseId) && course && idx >= 0 && idx < course.instructors.length) {
+      out[courseId] = idx;
+    }
   });
   return out;
 }
 
 export default function App() {
   const [theme, setTheme] = useTheme();
+
   // Both sources are read exactly once. URL state always wins over Local Storage, so opening
   // a shared link never gets clobbered by a stale saved schedule.
   const [sharedOnLoad] = useState(() => readScheduleFromLocation());
@@ -111,24 +126,37 @@ export default function App() {
    */
   const [creditCap, setCreditCap] = useState<CreditCap | null>(() => savedState?.creditCap ?? null);
   const [capNoteDismissed, setCapNoteDismissed] = useState(() => (savedState?.creditCap ?? null) != null);
+
   /** Inline rejection message + per-card shake state when an addition would exceed the cap. */
   const [capNotice, setCapNotice] = useState<string | null>(null);
   const [capShake, setCapShake] = useState<{ courseId: string; nonce: number } | null>(null);
   const capNoticeTimer = useRef<number | null>(null);
+
   const [crossYearOpen, setCrossYearOpen] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
+
   const [picks, setPicks] = useState<PickState>(() => {
-    if (urlState && MAJOR_BY_ID[urlState.majorId]) return trimPicksToMajor(urlState.picks, urlState.majorId);
-    if (savedState?.picks) return trimPicksToMajor(savedState.picks, savedState.majorId);
+    if (urlState && MAJOR_BY_ID[urlState.majorId]) {
+      return trimPicksToMajor(urlState.picks, urlState.majorId);
+    }
+
+    if (savedState?.picks) {
+      return trimPicksToMajor(savedState.picks, savedState.majorId);
+    }
+
     return {};
   });
+
   const [showMajorPicker, setShowMajorPicker] = useState(false);
+
   const [requireComplete, setRequireComplete] = useState(
     () => urlState?.requireComplete ?? savedState?.requireComplete ?? true,
   );
+
   const [typeFilter, setTypeFilter] = useState<TypeFilter>(
     () => (urlState?.typeFilter as TypeFilter) || (savedState?.typeFilter as TypeFilter) || 'All',
   );
+
   const [courseFilter, setCourseFilter] = useState<string>(
     () => urlState?.courseFilter ?? savedState?.courseFilter ?? 'all',
   );
@@ -140,8 +168,14 @@ export default function App() {
    * shared so a restored link reproduces exactly what the author was looking at.
    */
   const [instructorFilter, setInstructorFilter] = useState<Record<string, number>>(() => {
-    if (urlState && MAJOR_BY_ID[urlState.majorId]) return trimFilterToMajor(urlState.instructorFilter, urlState.majorId);
-    if (savedState?.instructorFilter) return trimFilterToMajor(savedState.instructorFilter, savedState.majorId);
+    if (urlState && MAJOR_BY_ID[urlState.majorId]) {
+      return trimFilterToMajor(urlState.instructorFilter, urlState.majorId);
+    }
+
+    if (savedState?.instructorFilter) {
+      return trimFilterToMajor(savedState.instructorFilter, savedState.majorId);
+    }
+
     return {};
   });
 
@@ -149,23 +183,34 @@ export default function App() {
     // URL preferences > saved app-state preferences > legacy prefs key > defaults (validated in each loader).
     () => urlState?.preferences ?? savedState?.preferences ?? loadPreferences(),
   );
+
   const [comboIndex, setComboIndex] = useState(0);
-  const [best, setBest] = useState<{ key: string; index: number; metrics: ComboMetrics; complete: boolean } | null>(null);
+  const [best, setBest] = useState<{
+    key: string;
+    index: number;
+    metrics: ComboMetrics;
+    complete: boolean;
+  } | null>(null);
+
   const [copied, setCopied] = useState(false);
   const [showAbout, setShowAbout] = useState(isAboutHash);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+
   /** Lifted so the Credits Dashboard and the mobile action bar can open the preferences modal. */
   const [prefsOpen, setPrefsOpen] = useState(false);
 
   /** Always-fresh mirrors so the stable toggleCourse callback can enforce the credit cap. */
   const picksRef = useRef(picks);
   picksRef.current = picks;
+
   const creditCapRef = useRef(creditCap);
   creditCapRef.current = creditCap;
 
   useEffect(() => {
     const onHashChange = () => setShowAbout(isAboutHash());
+
     window.addEventListener('hashchange', onHashChange);
+
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
@@ -183,38 +228,58 @@ export default function App() {
   const yearPlan = major && yearId ? yearPlanOf(major, yearId) : null;
 
   /**
-   * Courses shown in the picker: the selected year's list, plus any course of the SAME
-   * major picked via the cross-year browser (appended after the year's own list, so the
-   * default view is untouched when the browser is never used).
+   * Courses shown in the picker:
+   * - the selected year's courses
+   * - all common courses (e.g. SCH), available to every major/year
+   * - courses from other years of the same major only when selected through the cross-year browser
    */
   const courses: Course[] = useMemo(() => {
     if (!major || !yearPlan) return [];
-    const base = yearPlan.courseIds.map((id) => COURSE_BY_ID[id]).filter((c): c is Course => !!c);
-    const inYear = new Set(yearPlan.courseIds);
+
+    // Current year's courses + common courses (e.g. SCH) available to every year.
+    const baseIds = [...yearPlan.courseIds, ...COMMON_COURSE_IDS];
+
+    const base = baseIds
+      .map((id) => COURSE_BY_ID[id])
+      .filter((c): c is Course => !!c);
+
+    const inBase = new Set(baseIds);
+
+    // Extra courses from other years are shown only when selected through
+    // the cross-year browser.
     const extras = allYearCourseIds(major)
-      .filter((id) => !inYear.has(id) && picks[id] && COURSE_BY_ID[id])
+      .filter((id) => !inBase.has(id) && picks[id] && COURSE_BY_ID[id])
       .map((id) => COURSE_BY_ID[id]);
+
     return [...base, ...extras];
   }, [major, yearPlan, picks]);
 
   /** "Year X" badge for every course NOT belonging to the currently selected year. */
   const yearBadges = useMemo(() => {
     if (!major || !yearPlan) return {};
+
     const out: Record<string, string> = {};
+
     courses.forEach((c) => {
       if (yearPlan.courseIds.includes(c.id)) return;
+
       const badge = yearBadgeOf(major, c.id);
       if (badge) out[c.id] = badge;
     });
+
     return out;
   }, [major, yearPlan, courses]);
 
-  const takenCourses = useMemo(() => courses.filter((c) => picks[c.id]), [courses, picks]);
+  const takenCourses = useMemo(
+    () => courses.filter((c) => picks[c.id]),
+    [courses, picks],
+  );
 
   /** Effective credit cap — the tier setting when chosen, otherwise the 21-credit hard ceiling. */
   const effectiveCap = effectiveCreditCap(creditCap);
 
   /* ---------------- Local Storage persistence (URL state always wins on load) ---------------- */
+
   useEffect(() => {
     saveAppState({
       majorId,
@@ -227,11 +292,32 @@ export default function App() {
       courseFilter,
       preferences,
     });
-  }, [majorId, yearId, creditCap, instructorFilter, picks, requireComplete, typeFilter, courseFilter, preferences]);
+  }, [
+    majorId,
+    yearId,
+    creditCap,
+    instructorFilter,
+    picks,
+    requireComplete,
+    typeFilter,
+    courseFilter,
+    preferences,
+  ]);
 
-  const draft = useMemo(() => draftMeetings(takenCourses, picks), [takenCourses, picks]);
-  const overlapsFound = useMemo(() => draftOverlaps(draft), [draft]);
-  const issues = useMemo(() => pickIssues(takenCourses, picks, requireComplete), [takenCourses, picks, requireComplete]);
+  const draft = useMemo(
+    () => draftMeetings(takenCourses, picks),
+    [takenCourses, picks],
+  );
+
+  const overlapsFound = useMemo(
+    () => draftOverlaps(draft),
+    [draft],
+  );
+
+  const issues = useMemo(
+    () => pickIssues(takenCourses, picks, requireComplete),
+    [takenCourses, picks, requireComplete],
+  );
 
   const noConflicts = overlapsFound.length === 0;
 
@@ -245,17 +331,25 @@ export default function App() {
     // space entirely: they are always trivially satisfied and contribute only credits,
     // never a scheduling constraint (and must not read as "blocked").
     const schedulable = takenCourses.filter((c) => !c.noFixedSchedule);
+
     if (schedulable.length === 0) return null;
-    const entries = schedulable.map((course) => ({ course, pairings: buildCoursePairings(course) }));
+
+    const entries = schedulable.map((course) => ({
+      course,
+      pairings: buildCoursePairings(course),
+    }));
+
     return generateCombinations(entries);
   }, [takenCourses]);
 
   const count = generation?.count ?? 0;
+
   const storedCount = generation
     ? generation.truncated
       ? Math.floor(generation.flat.length / Math.max(1, generation.courseCount))
       : generation.count
     : 0;
+
   const safeIndex = storedCount > 0 ? Math.min(comboIndex, storedCount - 1) : 0;
 
   const genKey = useMemo(
@@ -272,21 +366,27 @@ export default function App() {
   const applyCombo = useCallback(
     (index: number) => {
       if (!generation) return;
+
       const indices = comboAt(generation, index);
       if (!indices) return;
+
       setPicks((prev) => {
         const next: PickState = { ...prev };
+
         generation.order.forEach((courseId, i) => {
           const pairing: Pairing | undefined = generation.pairingsByCourse[courseId]?.[indices[i]];
           if (!pairing) return;
+
           next[courseId] = {
             Lecture: pairing.lecture ? uid(pairing.lecture) : null,
             Lab: pairing.labs[0] ? uid(pairing.labs[0]) : null,
             Tutorial: pairing.tutorials[0] ? uid(pairing.tutorials[0]) : null,
           };
         });
+
         return next;
       });
+
       setComboIndex(index);
     },
     [generation],
@@ -296,12 +396,16 @@ export default function App() {
 
   const engineInSync = useMemo(() => {
     if (!generation || count === 0) return false;
+
     const indices = comboAt(generation, safeIndex);
     if (!indices) return false;
+
     return generation.order.every((courseId, i) => {
       const pairing = generation.pairingsByCourse[courseId]?.[indices[i]];
       const pick = picks[courseId];
+
       if (!pairing || !pick) return false;
+
       return (
         (pairing.lecture ? uid(pairing.lecture) : null) === pick.Lecture &&
         (pairing.labs[0] ? uid(pairing.labs[0]) : null) === pick.Lab &&
@@ -333,6 +437,7 @@ export default function App() {
   const selectYear = useCallback((id: string) => {
     setYearId((prev) => {
       if (prev === id) return prev;
+
       setPicks({});
       setInstructorFilter({});
       setCourseFilter('all');
@@ -343,8 +448,10 @@ export default function App() {
       setCapNoteDismissed(false);
       setCapNotice(null);
       setCapShake(null);
+
       return id;
     });
+
     setShowYearPicker(false);
     setCrossYearOpen(false);
   }, []);
@@ -369,35 +476,59 @@ export default function App() {
     if (taking) {
       if (wouldExceedCap(picksRef.current, courseId, creditCapRef.current)) {
         const cap = effectiveCreditCap(creditCapRef.current);
-        setCapNotice(`This would put you over your ${cap}-credit limit. Remove a course first.`);
-        setCapShake((prev) => ({ courseId, nonce: (prev?.nonce ?? 0) + 1 }));
-        if (capNoticeTimer.current != null) window.clearTimeout(capNoticeTimer.current);
-        capNoticeTimer.current = window.setTimeout(() => setCapNotice(null), 4000);
+
+        setCapNotice(
+          `This would put you over your ${cap}-credit limit. Remove a course first.`,
+        );
+
+        setCapShake((prev) => ({
+          courseId,
+          nonce: (prev?.nonce ?? 0) + 1,
+        }));
+
+        if (capNoticeTimer.current != null) {
+          window.clearTimeout(capNoticeTimer.current);
+        }
+
+        capNoticeTimer.current = window.setTimeout(
+          () => setCapNotice(null),
+          4000,
+        );
+
         return;
       }
     }
+
     setPicks((prev) => {
       const next = { ...prev };
+
       if (taking) next[courseId] = prev[courseId] ?? emptyPick();
       else delete next[courseId];
+
       return next;
     });
+
     if (!taking) {
       setInstructorFilter((prev) => {
         if (prev[courseId] == null) return prev;
+
         const next = { ...prev };
         delete next[courseId];
+
         return next;
       });
     }
   }, []);
 
   const clearOne = useCallback((courseId: string) => {
-    setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
+    setPicks((prev) => ({ ...prev, [courseId]: emptyPick()));
+
     setInstructorFilter((prev) => {
       if (prev[courseId] == null) return prev;
+
       const next = { ...prev };
       delete next[courseId];
+
       return next;
     });
   }, []);
@@ -405,8 +536,10 @@ export default function App() {
   const setInstructorPinned = useCallback((courseId: string, idx: number | null) => {
     setInstructorFilter((prev) => {
       const next = { ...prev };
+
       if (idx == null) delete next[courseId];
       else next[courseId] = idx;
+
       return next;
     });
   }, []);
@@ -426,6 +559,7 @@ export default function App() {
   const useGeneratedSchedule = useCallback((schedule: GeneratedSchedule) => {
     setPicks((prev) => {
       const next: PickState = { ...prev };
+
       schedule.perCourse.forEach(({ course, pairing }) => {
         next[course.id] = {
           Lecture: pairing.lecture ? uid(pairing.lecture) : null,
@@ -433,14 +567,17 @@ export default function App() {
           Tutorial: pairing.tutorials[0] ? uid(pairing.tutorials[0]) : null,
         };
       });
+
       return next;
     });
 
     setInstructorFilter((prev) => {
       const next = { ...prev };
+
       schedule.perCourse.forEach(({ course, instructorIdx }) => {
         next[course.id] = instructorIdx;
       });
+
       return next;
     });
 
@@ -450,32 +587,46 @@ export default function App() {
 
   const autoFill = useCallback(() => {
     if (!generation) return;
+
     const result = findBestCombo(generation);
     if (!result) return;
+
     applyCombo(result.index);
-    setBest({ key: genKey, index: result.index, metrics: result.metrics, complete: result.complete });
+
+    setBest({
+      key: genKey,
+      index: result.index,
+      metrics: result.metrics,
+      complete: result.complete,
+    });
   }, [generation, applyCombo, genKey]);
 
   const suggestBest = autoFill;
 
   const goPrev = useCallback(() => {
     if (storedCount === 0) return;
+
     applyCombo((safeIndex - 1 + storedCount) % storedCount);
   }, [storedCount, safeIndex, applyCombo]);
 
   const goNext = useCallback(() => {
     if (storedCount === 0) return;
+
     applyCombo((safeIndex + 1) % storedCount);
   }, [storedCount, safeIndex, applyCombo]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
+
       if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       if (e.key === 'ArrowLeft') goPrev();
       if (e.key === 'ArrowRight') goNext();
     };
+
     window.addEventListener('keydown', onKey);
+
     return () => window.removeEventListener('keydown', onKey);
   }, [goPrev, goNext]);
 
@@ -483,59 +634,77 @@ export default function App() {
 
   const detailEntries: DetailEntry[] = useMemo(
     () =>
-      draft.map((d) => ({
-        course: d.course,
-        instructor: d.option.instructor,
-        pairing: {
-          meetings: [d.meeting],
-          lecture: d.meeting.type === 'Lecture' ? d.meeting : undefined,
-          labs: d.meeting.type === 'Lab' ? [d.meeting] : [],
-          tutorials: d.meeting.type === 'Tutorial' ? [d.meeting] : [],
-          instructors: { [d.meeting.type]: d.option.instructorIdx },
-        },
-      })).reduce<DetailEntry[]>((acc, entry) => {
-        const existing = acc.find((e) => e.course.id === entry.course.id);
-        if (existing) {
-          existing.pairing.meetings.push(...entry.pairing.meetings);
-          if (entry.pairing.lecture) existing.pairing.lecture = entry.pairing.lecture;
-          existing.pairing.labs.push(...entry.pairing.labs);
-          existing.pairing.tutorials.push(...entry.pairing.tutorials);
-          existing.pairing.instructors = { ...existing.pairing.instructors, ...entry.pairing.instructors };
-        } else {
-          acc.push({
-            course: entry.course,
-            instructor: entry.instructor,
-            pairing: {
-              meetings: [...entry.pairing.meetings],
-              lecture: entry.pairing.lecture,
-              labs: entry.pairing.meetings.filter((m) => m.type === 'Lab'),
-              tutorials: entry.pairing.meetings.filter((m) => m.type === 'Tutorial'),
-              instructors: entry.pairing.instructors,
-            },
-          });
-        }
-        return acc;
-      }, [])
-      .concat(
-        takenCourses
-          .filter((c) => c.noFixedSchedule)
-          .map((course) => ({
-            course,
-            instructor: course.instructors[0],
-            pairing: { meetings: [], labs: [], tutorials: [] },
-          })),
-      ),
+      draft
+        .map((d) => ({
+          course: d.course,
+          instructor: d.option.instructor,
+          pairing: {
+            meetings: [d.meeting],
+            lecture: d.meeting.type === 'Lecture' ? d.meeting : undefined,
+            labs: d.meeting.type === 'Lab' ? [d.meeting] : [],
+            tutorials: d.meeting.type === 'Tutorial' ? [d.meeting] : [],
+            instructors: { [d.meeting.type]: d.option.instructorIdx },
+          },
+        }))
+        .reduce<DetailEntry[]>((acc, entry) => {
+          const existing = acc.find((e) => e.course.id === entry.course.id);
+
+          if (existing) {
+            existing.pairing.meetings.push(...entry.pairing.meetings);
+
+            if (entry.pairing.lecture) {
+              existing.pairing.lecture = entry.pairing.lecture;
+            }
+
+            existing.pairing.labs.push(...entry.pairing.labs);
+            existing.pairing.tutorials.push(...entry.pairing.tutorials);
+
+            existing.pairing.instructors = {
+              ...existing.pairing.instructors,
+              ...entry.pairing.instructors,
+            };
+          } else {
+            acc.push({
+              course: entry.course,
+              instructor: entry.instructor,
+              pairing: {
+                meetings: [...entry.pairing.meetings],
+                lecture: entry.pairing.lecture,
+                labs: entry.pairing.meetings.filter((m) => m.type === 'Lab'),
+                tutorials: entry.pairing.meetings.filter((m) => m.type === 'Tutorial'),
+                instructors: entry.pairing.instructors,
+              },
+            });
+          }
+
+          return acc;
+        }, [])
+        .concat(
+          takenCourses
+            .filter((c) => c.noFixedSchedule)
+            .map((course) => ({
+              course,
+              instructor: course.instructors[0],
+              pairing: { meetings: [], labs: [], tutorials: [] },
+            })),
+        ),
     [draft, takenCourses],
   );
 
-  const metrics = useMemo(() => measureSchedule(draft.map((d) => d.meeting)), [draft]);
+  const metrics = useMemo(
+    () => measureSchedule(draft.map((d) => d.meeting)),
+    [draft],
+  );
 
   const totalCredits = useMemo(
     () => takenCourses.reduce((sum, c) => sum + (c.credits ?? 0), 0),
     [takenCourses],
   );
 
-  const freeTime = useMemo(() => computeFreeTime(draft.map((d) => d.meeting)), [draft]);
+  const freeTime = useMemo(
+    () => computeFreeTime(draft.map((d) => d.meeting)),
+    [draft],
+  );
 
   const hiddenSummary = useMemo(
     () =>
@@ -570,7 +739,9 @@ export default function App() {
   );
 
   const bestLabel = isCurrentComboBest
-    ? `${best!.metrics.days} campus day${best!.metrics.days === 1 ? '' : 's'} · ${formatDuration(best!.metrics.gapMinutes)} idle · ends ${
+    ? `${best!.metrics.days} campus day${best!.metrics.days === 1 ? '' : 's'} · ${formatDuration(
+        best!.metrics.gapMinutes,
+      )} idle · ends ${
         best!.metrics.latest != null ? to12h(best!.metrics.latest) : '—'
       }`
     : null;
@@ -579,25 +750,48 @@ export default function App() {
   const ready = takenCourses.length > 0 && noConflicts && issues.length === 0;
 
   const shareExtras: ShareExtras = useMemo(
-    () => ({ yearId: yearId ?? undefined, requireComplete, typeFilter, courseFilter, preferences, instructorFilter }),
+    () => ({
+      yearId: yearId ?? undefined,
+      requireComplete,
+      typeFilter,
+      courseFilter,
+      preferences,
+      instructorFilter,
+    }),
     [yearId, requireComplete, typeFilter, courseFilter, preferences, instructorFilter],
   );
 
   const scrollToBestSchedule = useCallback(() => {
-    document.getElementById('best-schedule-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document
+      .getElementById('best-schedule-heading')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   const copySummary = useCallback(() => {
-    const lines: string[] = ['My Zewail City schedule — Fall 2026 (Main Session)', '--------------------------------'];
+    const lines: string[] = [
+      'My Zewail City schedule — Fall 2026 (Main Session)',
+      '--------------------------------',
+    ];
+
     detailEntries.forEach((e) => {
       lines.push(`${e.course.code} — ${e.course.name}  (${e.instructor.name})`);
+
       e.pairing.meetings.forEach((m) => {
-        lines.push(`   ${m.type} Sec ${m.sec} · ${m.day} ${formatRange(m.start, m.end)} · ${m.room}`);
+        lines.push(
+          `   ${m.type} Sec ${m.sec} · ${m.day} ${formatRange(m.start, m.end)} · ${m.room}`,
+        );
       });
     });
+
     lines.push('--------------------------------');
-    lines.push(`Sessions: ${metrics.sessions} · Campus days: ${metrics.days} · ${formatDuration(metrics.gapMinutes)} idle`);
+    lines.push(
+      `Sessions: ${metrics.sessions} · Campus days: ${metrics.days} · ${formatDuration(
+        metrics.gapMinutes,
+      )} idle`,
+    );
+
     const text = lines.join('\n');
+
     const done = () => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2200);
@@ -629,16 +823,25 @@ export default function App() {
       <div className="mx-auto max-w-[1560px] px-3 py-4 sm:px-6 sm:py-6">
         <header className="panel mb-3 flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
           <div>
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.09em]" style={{ color: 'var(--accent)' }}>
+            <p
+              className="text-[10.5px] font-bold uppercase tracking-[0.09em]"
+              style={{ color: 'var(--accent)' }}
+            >
               Fall 2026 · Main Session
             </p>
+
             <h1 className="mt-1 text-[20px] font-extrabold tracking-tight sm:text-[23px]">
               Zewail City Schedule Builder
             </h1>
-            <p className="mt-1.5 max-w-[72ch] text-[12.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Tick the courses you are registering, then choose the lecture and lab/tutorial times you prefer — each
-              component may come from a different instructor; every published section pairing is fair game. Real time
-              intervals decide conflicts — a 2:00–2:59 session next to a 3:00–3:59 session is fine, clashing ones are not.
+
+            <p
+              className="mt-1.5 max-w-[72ch] text-[12.5px] leading-relaxed"
+              style={{ color: 'var(--muted)' }}
+            >
+              Tick the courses you are registering, then choose the lecture and lab/tutorial
+              times you prefer — each component may come from a different instructor; every
+              published section pairing is fair game. Real time intervals decide conflicts — a
+              2:00–2:59 session next to a 3:00–3:59 session is fine, clashing ones are not.
             </p>
           </div>
 
@@ -649,7 +852,11 @@ export default function App() {
               </span>
             )}
 
-            <button type="button" className="btn btn-tap" onClick={showAbout ? closeAbout : openAbout}>
+            <button
+              type="button"
+              className="btn btn-tap"
+              onClick={showAbout ? closeAbout : openAbout}
+            >
               {showAbout ? '‹ Planner' : 'ℹ️ About'}
             </button>
 
@@ -670,7 +877,10 @@ export default function App() {
             <section className="panel p-4 sm:p-5">
               <h2 className="text-[13px] font-bold tracking-tight">Choose Your Major</h2>
 
-              <p className="mb-4 mt-1 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
+              <p
+                className="mb-4 mt-1 text-[12px] leading-relaxed"
+                style={{ color: 'var(--muted)' }}
+              >
                 Three configurations, five courses each.
               </p>
 
@@ -688,7 +898,11 @@ export default function App() {
 
                   <div>
                     <p className="text-[13.5px] font-bold leading-tight">{major.title}</p>
-                    <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
+
+                    <p
+                      className="text-[11.5px]"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {major.subtitle}
                     </p>
                   </div>
@@ -706,7 +920,11 @@ export default function App() {
 
               {showMajorPicker && (
                 <div className="mt-3">
-                  <MajorPicker selectedId={majorId} onSelect={selectMajor} compact />
+                  <MajorPicker
+                    selectedId={majorId}
+                    onSelect={selectMajor}
+                    compact
+                  />
                 </div>
               )}
             </section>
@@ -714,12 +932,19 @@ export default function App() {
             <section className="panel p-4 sm:p-5">
               <h2 className="text-[13px] font-bold tracking-tight">Choose Your Year</h2>
 
-              <p className="mb-4 mt-1 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-                Pick the academic year you're planning — its course list appears next. You can still add courses from
-                the other years afterwards.
+              <p
+                className="mb-4 mt-1 text-[12px] leading-relaxed"
+                style={{ color: 'var(--muted)' }}
+              >
+                Pick the academic year you're planning — its course list appears next. You can
+                still add courses from the other years afterwards.
               </p>
 
-              <YearPicker major={major} selectedYearId={yearId} onSelect={selectYear} />
+              <YearPicker
+                major={major}
+                selectedYearId={yearId}
+                onSelect={selectYear}
+              />
             </section>
           </div>
         ) : (
@@ -733,7 +958,11 @@ export default function App() {
 
                   <div>
                     <p className="text-[13.5px] font-bold leading-tight">{major.title}</p>
-                    <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
+
+                    <p
+                      className="text-[11.5px]"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {major.subtitle} · {yearPlan.label}
                     </p>
                   </div>
@@ -803,18 +1032,32 @@ export default function App() {
 
               {showMajorPicker && (
                 <div className="mt-3">
-                  <MajorPicker selectedId={majorId} onSelect={selectMajor} compact />
+                  <MajorPicker
+                    selectedId={majorId}
+                    onSelect={selectMajor}
+                    compact
+                  />
                 </div>
               )}
 
               {showYearPicker && (
                 <div className="mt-3">
-                  <YearPicker major={major} selectedYearId={yearId} onSelect={selectYear} compact />
+                  <YearPicker
+                    major={major}
+                    selectedYearId={yearId}
+                    onSelect={selectYear}
+                    compact
+                  />
                 </div>
               )}
             </section>
 
-            {!capNoteDismissed && <CreditLimitNote onChoose={chooseCreditCap} onDismiss={dismissCapNote} />}
+            {!capNoteDismissed && (
+              <CreditLimitNote
+                onChoose={chooseCreditCap}
+                onDismiss={dismissCapNote}
+              />
+            )}
 
             <CreditsDashboard
               selectedCount={takenCourses.length}
@@ -877,20 +1120,23 @@ export default function App() {
                         className="rounded-xl border px-3.5 py-3 text-[12px] leading-relaxed"
                         style={{
                           borderColor: 'var(--warn-line)',
-                          background: 'color-mix(in srgb, var(--warn-bg) 55%, var(--paper))',
+                          background:
+                            'color-mix(in srgb, var(--warn-bg) 55%, var(--paper))',
                           color: 'var(--warn)',
                         }}
                         role="alert"
                       >
                         <strong>
-                          {overlapsFound.length} time conflict{overlapsFound.length > 1 ? 's' : ''} in your current picks.
+                          {overlapsFound.length} time conflict
+                          {overlapsFound.length > 1 ? 's' : ''} in your current picks.
                         </strong>{' '}
-                        The overlapping blocks are outlined in red on the timetable. Change one of the times, or browse a
-                        generated combination instead.
+                        The overlapping blocks are outlined in red on the timetable. Change one
+                        of the times, or browse a generated combination instead.
 
                         {generation && storedCount > 0 && (
                           <span className="mt-1 block">
-                            {count.toLocaleString()} conflict-free combination{count === 1 ? '' : 's'} exist
+                            {count.toLocaleString()} conflict-free combination
+                            {count === 1 ? 's' : ''} exist
                             {count === 1 ? 's' : ''} for this selection — use the arrows below.
                           </span>
                         )}
@@ -908,7 +1154,11 @@ export default function App() {
 
                         <ul className="mt-1.5 space-y-1">
                           {issues.map((issue, i) => (
-                            <li key={i} className="text-[12px] leading-snug" style={{ color: 'var(--muted)' }}>
+                            <li
+                              key={i}
+                              className="text-[12px] leading-snug"
+                              style={{ color: 'var(--muted)' }}
+                            >
                               • {issue.text}
                             </li>
                           ))}
@@ -921,7 +1171,8 @@ export default function App() {
                         className="rounded-xl border-2 px-4 py-3 text-center text-[13.5px] font-bold"
                         style={{
                           borderColor: 'var(--ok)',
-                          background: 'color-mix(in srgb, var(--ok) 12%, var(--paper))',
+                          background:
+                            'color-mix(in srgb, var(--ok) 12%, var(--paper))',
                           color: 'var(--ok)',
                         }}
                         role="status"
@@ -976,9 +1227,15 @@ export default function App() {
                           countCapped={generation?.countCapped ?? false}
                         />
 
-                        <ScheduleDetails entries={detailEntries} yearBadges={yearBadges} />
+                        <ScheduleDetails
+                          entries={detailEntries}
+                          yearBadges={yearBadges}
+                        />
 
-                        <EngineAudit combos={count} truncated={generation?.truncated ?? false} />
+                        <EngineAudit
+                          combos={count}
+                          truncated={generation?.truncated ?? false}
+                        />
 
                         <div className="panel flex flex-wrap items-center gap-2 p-3">
                           <ShareSchedule
@@ -996,11 +1253,21 @@ export default function App() {
                             }}
                           />
 
-                          <button type="button" className="btn btn-tap" onClick={() => window.print()} disabled={!canExport}>
+                          <button
+                            type="button"
+                            className="btn btn-tap"
+                            onClick={() => window.print()}
+                            disabled={!canExport}
+                          >
                             Print / Save PDF
                           </button>
 
-                          <button type="button" className="btn btn-tap" onClick={copySummary} disabled={!canExport}>
+                          <button
+                            type="button"
+                            className="btn btn-tap"
+                            onClick={copySummary}
+                            disabled={!canExport}
+                          >
                             {copied ? '✓ Copied' : 'Copy summary'}
                           </button>
 
@@ -1014,7 +1281,10 @@ export default function App() {
                           </button>
 
                           {engineInSync && (
-                            <span className="pill ml-auto" style={{ color: 'var(--ok)' }}>
+                            <span
+                              className="pill ml-auto"
+                              style={{ color: 'var(--ok)' }}
+                            >
                               ✓ matches combination {safeIndex + 1}
                             </span>
                           )}
@@ -1025,9 +1295,10 @@ export default function App() {
                           style={{ color: 'var(--muted-2)' }}
                         >
                           Conflict rule: two meetings clash only on the same day when{' '}
-                          <span className="mono">startA &lt; endB</span> and <span className="mono">startB &lt; endA</span> —
-                          back-to-back sessions (2:00–2:59 then 3:00–3:59) are allowed, while 2:00–3:59 and 3:00–4:59 clash.
-                          Non-credit tutorials and labs still count. Use ← / → to browse.
+                          <span className="mono">startA &lt; endB</span> and{' '}
+                          <span className="mono">startB &lt; endA</span> — back-to-back sessions
+                          (2:00–2:59 then 3:00–3:59) are allowed, while 2:00–3:59 and 3:00–4:59
+                          clash. Non-credit tutorials and labs still count. Use ← / → to browse.
                         </p>
                       </>
                     )}
@@ -1043,6 +1314,7 @@ export default function App() {
           style={{ color: 'var(--muted-2)' }}
         >
           <span>Zewail City Schedule Builder · Version 2.1</span>
+
           <span aria-hidden>·</span>
 
           <button
@@ -1065,12 +1337,23 @@ export default function App() {
       {/* Mobile quick-action bar: the primary workflow (generate → preferences → share) stays
           one tap away while scrolling the course list on small screens. */}
       {major && !showAbout && takenCourses.length > 0 && (
-        <nav className="mobile-actionbar no-print" aria-label="Quick schedule actions">
-          <button type="button" className="btn btn-accent btn-tap flex-1" onClick={scrollToBestSchedule}>
+        <nav
+          className="mobile-actionbar no-print"
+          aria-label="Quick schedule actions"
+        >
+          <button
+            type="button"
+            className="btn btn-accent btn-tap flex-1"
+            onClick={scrollToBestSchedule}
+          >
             ✦ Best Schedule
           </button>
 
-          <button type="button" className="btn btn-tap flex-1" onClick={() => setPrefsOpen(true)}>
+          <button
+            type="button"
+            className="btn btn-tap flex-1"
+            onClick={() => setPrefsOpen(true)}
+          >
             ⚙ Preferences
           </button>
 
@@ -1114,22 +1397,35 @@ export default function App() {
           }}
         >
           <div className="panel w-full max-w-[420px] rounded-b-none p-5 sm:rounded-2xl">
-            <h2 className="text-[15px] font-bold tracking-tight">Clear entire schedule?</h2>
+            <h2 className="text-[15px] font-bold tracking-tight">
+              Clear entire schedule?
+            </h2>
 
-            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              This will remove all selected courses, sections and instructor filters. Your saved schedule preferences
-              won't be affected.
+            <p
+              className="mt-2 text-[13px] leading-relaxed"
+              style={{ color: 'var(--muted)' }}
+            >
+              This will remove all selected courses, sections and instructor filters. Your saved
+              schedule preferences won't be affected.
             </p>
 
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <button type="button" className="btn btn-tap" onClick={() => setConfirmClearOpen(false)}>
+              <button
+                type="button"
+                className="btn btn-tap"
+                onClick={() => setConfirmClearOpen(false)}
+              >
                 Cancel
               </button>
 
               <button
                 type="button"
                 className="btn btn-tap"
-                style={{ background: 'var(--warn)', color: '#fff', borderColor: 'transparent' }}
+                style={{
+                  background: 'var(--warn)',
+                  color: '#fff',
+                  borderColor: 'transparent',
+                }}
                 onClick={performClearAll}
               >
                 Clear All
@@ -1141,3 +1437,4 @@ export default function App() {
     </div>
   );
 }
+```
