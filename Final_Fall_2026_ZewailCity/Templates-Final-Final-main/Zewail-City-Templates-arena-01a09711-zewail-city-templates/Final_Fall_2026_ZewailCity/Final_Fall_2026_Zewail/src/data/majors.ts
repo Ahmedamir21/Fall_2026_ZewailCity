@@ -1,29 +1,16 @@
 ```ts
 import type { Major, YearPlan } from '../types';
-
-/**
- * Year scoping
- * ------------
- * Each major exposes four selectable years:
- * Year 1 (Freshman), Year 2 (Sophomore), Year 3 (Junior), Year 4 (Senior).
- *
- * Year 1 is currently prepared as an empty course list and can be populated
- * with course IDs once the Year 1 courses are added to courses.ts.
- */
+import { SCH_ELECTIVE_COURSE_IDS } from './schElectives';
 
 export const YEAR_IDS = ['y1', 'y2', 'y3', 'y4'] as const;
 
 /**
- * Common courses
- * --------------
- * Courses in this pool are available to EVERY major and EVERY year.
- *
- * Add SCH course IDs here after they are added to courses.ts.
- *
- * Example:
- * export const COMMON_COURSE_IDS = ['sch101', 'sch102'];
+ * Shared courses available to every major and every year.
+ * SCH electives are not duplicated inside individual year plans.
  */
-export const COMMON_COURSE_IDS: string[] = [];
+export const COMMON_COURSE_IDS: string[] = [
+  ...SCH_ELECTIVE_COURSE_IDS,
+];
 
 export const MAJORS: Major[] = [
   {
@@ -35,7 +22,18 @@ export const MAJORS: Major[] = [
       {
         id: 'y1',
         label: 'Year 1 (Freshman)',
-        courseIds: [],
+        courseIds: [
+          'csai100',
+          'csai101',
+          'csai102',
+          'csai252',
+          'csai151',
+          'math103',
+          'math104',
+          'it101',
+          'it102',
+          'it103',
+        ],
       },
       {
         id: 'y2',
@@ -64,7 +62,17 @@ export const MAJORS: Major[] = [
       {
         id: 'y1',
         label: 'Year 1 (Freshman)',
-        courseIds: [],
+        courseIds: [
+          'csai100',
+          'csai101',
+          'csai102',
+          'csai252',
+          'csai151',
+          'math103',
+          'math104',
+          'dsai104',
+          'dsai103',
+        ],
       },
       {
         id: 'y2',
@@ -88,12 +96,23 @@ export const MAJORS: Major[] = [
     id: 'software',
     title: 'Software',
     subtitle: 'Software Engineering',
-    blurb: 'Engineering process and physics track — swaps CSAI 205 / the elective for CSAI 203 + PHYS 104.',
+    blurb:
+      'Engineering process and physics track — swaps CSAI 205 / the elective for CSAI 203 + PHYS 104.',
     years: [
       {
         id: 'y1',
         label: 'Year 1 (Freshman)',
-        courseIds: [],
+        courseIds: [
+          'csai100',
+          'csai101',
+          'csai102',
+          'csai252',
+          'csai151',
+          'math103',
+          'math104',
+          'sw151',
+          'phys103',
+        ],
       },
       {
         id: 'y2',
@@ -103,13 +122,22 @@ export const MAJORS: Major[] = [
       {
         id: 'y3',
         label: 'Year 3 (Junior)',
-        // All three concentrations (APD / GCG / HCI) merged into one flat list — no track picker.
         courseIds: ['csai301', 'sw301', 'sw252', 'sw302', 'swapd301', 'swgcg301', 'swhci301'],
       },
       {
         id: 'y4',
         label: 'Year 4 (Senior)',
-        courseIds: ['sw401', 'swapd401', 'swapd402', 'sw402', 'swgcg401', 'swgcg402', 'swhci401', 'swhci402', 'csai498'],
+        courseIds: [
+          'sw401',
+          'swapd401',
+          'swapd402',
+          'sw402',
+          'swgcg401',
+          'swgcg402',
+          'swhci401',
+          'swhci402',
+          'csai498',
+        ],
       },
     ],
   },
@@ -119,7 +147,6 @@ export const MAJOR_BY_ID: Record<string, Major> = Object.fromEntries(
   MAJORS.map((mj) => [mj.id, mj]),
 );
 
-/** The YearPlan for a major+year pair, falling back to the major's FIRST year ('y1'). */
 export function yearPlanOf(
   major: Major,
   yearId: string | null | undefined,
@@ -127,7 +154,6 @@ export function yearPlanOf(
   return major.years.find((y) => y.id === yearId) ?? major.years[0];
 }
 
-/** Every course id belonging to ANY year of the major. */
 export function allYearCourseIds(major: Major): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -143,11 +169,6 @@ export function allYearCourseIds(major: Major): string[] {
   return out;
 }
 
-/**
- * Every course available to the major:
- * - all courses from all four years
- * - all common courses (e.g. SCH)
- */
 export function allAvailableCourseIds(major: Major): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -161,7 +182,6 @@ export function allAvailableCourseIds(major: Major): string[] {
   return out;
 }
 
-/** Human label ("Year 1") of the FIRST year that lists this course inside the major. */
 export function yearBadgeOf(
   major: Major,
   courseId: string,
