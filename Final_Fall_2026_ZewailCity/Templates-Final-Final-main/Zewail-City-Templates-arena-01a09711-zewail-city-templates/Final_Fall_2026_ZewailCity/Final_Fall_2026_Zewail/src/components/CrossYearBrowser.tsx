@@ -30,6 +30,7 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
     const q = query.trim().toLowerCase();
     const out: { courseId: string; yearId: string; yearLabel: string }[] = [];
     const seen = new Set<string>();
+
     major.years.forEach((year) => {
       year.courseIds.forEach((id) => {
         if (seen.has(id)) return;
@@ -37,11 +38,15 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
         out.push({ courseId: id, yearId: year.id, yearLabel: year.label });
       });
     });
+
     return out.filter(({ courseId, yearId }) => {
       if (yearFilter !== 'all' && yearId !== yearFilter) return false;
+
       const course = COURSE_BY_ID[courseId];
       if (!course) return false;
+
       if (!q) return true;
+
       return course.code.toLowerCase().includes(q) || course.name.toLowerCase().includes(q);
     });
   }, [major, query, yearFilter]);
@@ -61,18 +66,28 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
           <div>
             <h2 className="text-[14.5px] font-bold tracking-tight">Choose from another year</h2>
             <p className="mt-0.5 text-[11.5px]" style={{ color: 'var(--muted)' }}>
-              Every {major.title} course across Year 2–4 — tick one to add it to your normal course list.
+              Every {major.title} course across Year 1–4 — tick one to add it to your normal course list.
             </p>
           </div>
-          <button type="button" className="btn px-2.5 py-1.5" onClick={onClose} aria-label="Close cross-year browser">
+
+          <button
+            type="button"
+            className="btn px-2.5 py-1.5"
+            onClick={onClose}
+            aria-label="Close cross-year browser"
+          >
             ✕
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-b p-3" style={{ borderColor: 'var(--line-soft)' }}>
+        <div
+          className="flex flex-wrap items-center gap-2 border-b p-3"
+          style={{ borderColor: 'var(--line-soft)' }}
+        >
           <label className="sr-only" htmlFor="cross-year-search">
             Search courses by code or name
           </label>
+
           <input
             id="cross-year-search"
             type="search"
@@ -81,40 +96,50 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+
           <div
             className="flex flex-wrap items-center gap-1 rounded-xl p-1"
             style={{ background: 'var(--surface)', border: '1px solid var(--line-soft)' }}
             role="group"
             aria-label="Filter by year"
           >
-            {[{ id: 'all', label: 'All years' }, ...major.years.map((y) => ({ id: y.id, label: y.label.replace(/\s*\(.*\)$/, '') }))].map(
-              (chip) => {
-                const active = yearFilter === chip.id;
-                return (
-                  <button
-                    key={chip.id}
-                    type="button"
-                    onClick={() => setYearFilter(chip.id)}
-                    aria-pressed={active}
-                    className="rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors"
-                    style={{
-                      background: active ? 'var(--paper)' : 'transparent',
-                      color: active ? 'var(--ink)' : 'var(--muted)',
-                      border: active ? '1px solid var(--line)' : '1px solid transparent',
-                    }}
-                  >
-                    {chip.label}
-                  </button>
-                );
-              },
-            )}
+            {[
+              { id: 'all', label: 'All years' },
+              ...major.years.map((y) => ({
+                id: y.id,
+                label: y.label.replace(/\s*\(.*\)$/, ''),
+              })),
+            ].map((chip) => {
+              const active = yearFilter === chip.id;
+
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => setYearFilter(chip.id)}
+                  aria-pressed={active}
+                  className="rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors"
+                  style={{
+                    background: active ? 'var(--paper)' : 'transparent',
+                    color: active ? 'var(--ink)' : 'var(--muted)',
+                    border: active ? '1px solid var(--line)' : '1px solid transparent',
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {capNotice && (
           <p
             className="border-b px-4 py-2 text-[12px] font-semibold"
-            style={{ borderColor: 'var(--warn-line)', background: 'var(--warn-bg)', color: 'var(--warn)' }}
+            style={{
+              borderColor: 'var(--warn-line)',
+              background: 'var(--warn-bg)',
+              color: 'var(--warn)',
+            }}
             role="alert"
           >
             {capNotice}
@@ -127,18 +152,24 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
               No courses match this search.
             </p>
           )}
+
           {rows.map(({ courseId, yearId, yearLabel }) => {
             const course = COURSE_BY_ID[courseId];
             const taking = !!picks[courseId];
             const isCurrentYear = yearId === currentYearId;
             const shaking = shake?.courseId === courseId;
+
             return (
               <label
                 key={shaking ? `${courseId}:${shake!.nonce}` : courseId}
-                className={`tap-row flex items-start gap-2.5 rounded-xl border px-3 py-2.5 ${shaking ? 'shake' : ''}`}
+                className={`tap-row flex items-start gap-2.5 rounded-xl border px-3 py-2.5 ${
+                  shaking ? 'shake' : ''
+                }`}
                 style={{
                   borderColor: taking ? 'var(--accent)' : 'var(--line-soft)',
-                  background: taking ? 'color-mix(in srgb, var(--accent) 8%, var(--paper))' : 'var(--surface)',
+                  background: taking
+                    ? 'color-mix(in srgb, var(--accent) 8%, var(--paper))'
+                    : 'var(--surface)',
                 }}
               >
                 <input
@@ -148,25 +179,47 @@ export function CrossYearBrowser({ major, currentYearId, picks, onToggle, onClos
                   onChange={(e) => onToggle(courseId, e.target.checked)}
                   aria-label={`Register ${course.code} from ${yearLabel}`}
                 />
+
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="mono text-[13px] font-bold tracking-tight" style={{ color: `var(--c${course.c})` }}>
+                    <span
+                      className="mono text-[13px] font-bold tracking-tight"
+                      style={{ color: `var(--c${course.c})` }}
+                    >
                       {course.code}
                     </span>
+
                     {course.credits != null && <span className="pill">{course.credits} cr</span>}
+
                     <span
                       className="pill"
-                      style={isCurrentYear ? undefined : { color: 'var(--accent)', borderColor: 'color-mix(in srgb, var(--accent) 45%, var(--line))' }}
+                      style={
+                        isCurrentYear
+                          ? undefined
+                          : {
+                              color: 'var(--accent)',
+                              borderColor:
+                                'color-mix(in srgb, var(--accent) 45%, var(--line))',
+                            }
+                      }
                     >
                       {yearLabel.replace(/\s*\(.*\)$/, '')}
                       {isCurrentYear ? ' · current' : ''}
                     </span>
                   </span>
-                  <span className="mt-0.5 block text-[12px] leading-snug" style={{ color: 'var(--muted)' }}>
+
+                  <span
+                    className="mt-0.5 block text-[12px] leading-snug"
+                    style={{ color: 'var(--muted)' }}
+                  >
                     {course.name}
                   </span>
+
                   {course.noFixedSchedule && (
-                    <span className="mt-0.5 block text-[11px] font-semibold" style={{ color: 'var(--muted-2)' }}>
+                    <span
+                      className="mt-0.5 block text-[11px] font-semibold"
+                      style={{ color: 'var(--muted-2)' }}
+                    >
                       No fixed schedule — arranged individually.
                     </span>
                   )}
