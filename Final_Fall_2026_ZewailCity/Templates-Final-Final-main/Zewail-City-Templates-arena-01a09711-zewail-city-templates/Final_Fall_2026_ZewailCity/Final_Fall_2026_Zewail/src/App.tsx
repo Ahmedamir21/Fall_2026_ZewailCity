@@ -520,8 +520,7 @@ export default function App() {
   }, []);
 
   const clearOne = useCallback((courseId: string) => {
-    setPicks((prev) => ({ ...prev, [courseId]: emptyPick()));
-
+    setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
     setInstructorFilter((prev) => {
       if (prev[courseId] == null) return prev;
 
