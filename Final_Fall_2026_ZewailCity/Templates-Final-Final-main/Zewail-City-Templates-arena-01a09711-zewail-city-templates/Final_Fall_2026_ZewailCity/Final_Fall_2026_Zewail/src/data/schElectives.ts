@@ -5,7 +5,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch163',
     code: 'SCH 163',
     name: 'Sustain, Social & Ethical Issues in Comp',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -29,7 +29,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch105',
     code: 'SCH 105',
     name: 'Critical Thinking',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -61,7 +61,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch110',
     code: 'SCH 110',
     name: 'Creativity and Innovation',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -85,7 +85,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch201',
     code: 'SCH 201',
     name: 'World Literature',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -109,7 +109,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch244',
     code: 'SCH 244',
     name: 'Leadership & Professionalism',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -133,7 +133,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch258',
     code: 'SCH 258',
     name: 'Arabic Literature',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -157,7 +157,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch260',
     code: 'SCH 260',
     name: 'Philosophical Thinking',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -189,7 +189,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch261',
     code: 'SCH 261',
     name: 'Engineering Project Management',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -213,7 +213,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch262',
     code: 'SCH 262',
     name: 'Engineering Project Economics',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -237,7 +237,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch263',
     code: 'SCH 263',
     name: 'Engineering Ethics and Safety',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -261,7 +261,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch264',
     code: 'SCH 264',
     name: 'Intro to Entrepreneurship & Small Mangm',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -285,7 +285,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch273',
     code: 'SCH 273',
     name: 'Cognitive Psychology',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
@@ -309,7 +309,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     id: 'sch277',
     code: 'SCH 277',
     name: 'Positive Psychology',
-    c: 0,
+    c: 7,
     credits: 2,
     instructors: [
       {
