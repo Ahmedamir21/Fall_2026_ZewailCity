@@ -4,6 +4,8 @@
 
 Pick a major, tick your courses, choose real lecture/lab/tutorial times, and let the built-in engine catch every time conflict instantly, track your credit hours and free time, and generate the best possible conflict-free schedules based on your personal preferences.
 
+🔗 **Live app / Repo:** https://github.com/Ahmedamir21/Fall_2026_ZewailCity
+
 ---
 
 ## ✨ Features
@@ -116,6 +118,19 @@ src/
 │   └── freeTime.ts                   # Free-time / occupied-time computation
 └── types.ts                  # Shared TypeScript types
 ```
+
+---
+
+## 🔄 Version 2.1 — What Changed
+
+This build merges two parallel versions of the planner into one production codebase:
+
+- **Kept the algorithmic core**: most-constrained-first backtracking, real-interval conflict pruning, top-K pool retention with honest `truncated` / `earlyExit` / `countCapped` flags, the validated compact share codec, and the unified `zw-app-state-v2` local storage store.
+- **Ported the UI/UX layer**: mobile sticky action bar, live-pulse dashboard tiles, reversible instructor-filter pills with "N hidden" disclosure, a richer share sheet, segmented theme toggle, preference goal descriptions, and a sticky time gutter on touch devices.
+- **Added**: Year 2/3/4 scoping per major, a dismissible credit-limit tier note (13/18/21 caps), a cross-year course browser, and no-fixed-schedule placeholder courses (e.g. Senior Project) that count credits without inventing a timetable slot.
+- **Verified**: `tsc` clean, `vite build` clean, 81/81 engine-harness checks, full SSR smoke test including share-URL restore and corrupt-URL fallback cases.
+
+See `MERGE_REPORT.md` for the full technical breakdown of what was kept, ported, or removed.
 
 ---
 
