@@ -201,45 +201,45 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
   },
 
   {
-    id: 'sch261',
-    code: 'SCH 261',
-    name: 'Engineering Project Management',
-    c: 7,
-    credits: 2,
-    instructors: [
-      {
-        name: 'Hassan Darwish',
-        lectures: [
-          {
-            type: 'Lecture',
-            sec: '01',
-            day: 'Wed',
-            start: 10 * 60,
-            end: 12 * 60,
-            room: 'F25-B4',
-          },
-          {
-            type: 'Lecture',
-            sec: '02',
-            day: 'Wed',
-            start: 19 * 60,
-            end: 21 * 60,
-            room: 'Online',
-          },
-          {
-            type: 'Lecture',
-            sec: '03',
-            day: 'Wed',
-            start: 19 * 60,
-            end: 21 * 60,
-            room: 'Online',
-          },
-        ],
-        labs: [],
-        tutorials: [],
-      },
-    ],
-  },
+  id: 'sch261',
+  code: 'SCH 261',
+  name: 'Engineering Project Management',
+  c: 7,
+  credits: 2,
+  instructors: [
+    {
+      name: 'Hassan Darwish',
+      lectures: [
+        {
+          type: 'Lecture',
+          sec: '01',
+          day: 'Wed',
+          start: 10 * 60,
+          end: 12 * 60,
+          room: 'F25-B4',
+        },
+        {
+          type: 'Lecture',
+          sec: '02',
+          day: 'Wed',
+          start: 19 * 60,
+          end: 21 * 60,
+          room: 'Online',
+        },
+        {
+          type: 'Lecture',
+          sec: '03',
+          day: 'Wed',
+          start: 17 * 60,
+          end: 19 * 60,
+          room: 'Online',
+        },
+      ],
+      labs: [],
+      tutorials: [],
+    },
+  ],
+},
 
   {
     id: 'sch262',
