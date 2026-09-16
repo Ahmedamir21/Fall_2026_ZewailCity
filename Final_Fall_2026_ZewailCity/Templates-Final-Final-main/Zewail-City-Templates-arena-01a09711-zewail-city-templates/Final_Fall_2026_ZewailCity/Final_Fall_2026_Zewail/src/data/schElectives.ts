@@ -187,6 +187,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
   },
   {
     {
+  {
   id: 'sch261',
   code: 'SCH 261',
   name: 'Engineering Project Management',
