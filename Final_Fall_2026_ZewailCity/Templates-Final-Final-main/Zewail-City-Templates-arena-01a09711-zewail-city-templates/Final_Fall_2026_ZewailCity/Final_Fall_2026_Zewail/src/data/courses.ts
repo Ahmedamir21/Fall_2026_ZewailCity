@@ -59,7 +59,10 @@ const csai201: Course = {
     },
     {
       name: 'Mohamed Elhalaby Elhalaby',
-      lectures: [lec('02', 'Tue', 'D', 'G038B'), lec('03', 'Wed', 'A', 'F019-E')],
+      lectures: [
+        lec('02', 'Tue', 'D', 'G038B'),
+        lec('03', 'Wed', 'A', 'F019-E'),
+      ],
       labs: [
         lab('05', 'Wed', 'E', 'G013-E'),
         lab('06', 'Wed', 'D', 'G014-E'),
@@ -72,6 +75,15 @@ const csai201: Course = {
       ],
       tutorials: [],
     },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [
+        lab('13', 'Sun', 'D', 'S043-E'),
+        lab('14', 'Sun', 'E', 'S043-E'),
+      ],
+      tutorials: [],
+    },
   ],
 };
 
@@ -79,7 +91,7 @@ const csai202: Course = {
   id: 'csai202',
   code: 'CSAI 202',
   name: 'Introduction to Database Systems',
-  c: 2,
+  c: 1,
   credits: 3,
   instructors: [
     {
@@ -109,17 +121,17 @@ const csai202: Course = {
       tutorials: [],
     },
     {
-      name: 'Instructor not assigned',
-      unassigned: true,
+      name: 'Instructor Not Assigned',
       lectures: [],
       labs: [
         lab('09', 'Tue', 'C', 'G012-E'),
         lab('10', 'Tue', 'D', 'G012-E'),
         lab('11', 'Wed', 'A', 'G013-E'),
         lab('12', 'Sun', 'E', 'G0011D'),
+        lab('13', 'Mon', 'D', 'S043-E'),
+        lab('14', 'Mon', 'A', 'G015-D'),
       ],
       tutorials: [],
-      note: 'Instructor has not yet been assigned to lab sections 09–12.',
     },
   ],
 };
@@ -249,44 +261,47 @@ const csai203: Course = {
   id: 'csai203',
   code: 'CSAI 203',
   name: 'Introduction to Software Engineering',
-  c: 6,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Mohamed Sami Rakha',
-      lectures: [lecH('01', 'Sun', 14, 16, 'G006-B')],
+      lectures: [
+        lec('01', 'Sun', 'D', 'G006-B'),
+      ],
       labs: [
-        labH('01', 'Mon', 16, 18, 'G0011D'),
-        labH('02', 'Mon', 8, 10, 'G014-E'),
-        labH('03', 'Mon', 16, 18, 'G014-E'),
-        labH('04', 'Mon', 8, 10, 'G011-E'),
+        lab('01', 'Mon', 'E', 'G0011D'),
+        lab('02', 'Mon', 'A', 'G014-E'),
+        lab('03', 'Mon', 'E', 'G014-E'),
+        lab('04', 'Mon', 'A', 'G011-E'),
       ],
       tutorials: [],
     },
     {
       name: 'Sabah Sayed Sayed',
-      lectures: [],
+      lectures: [
+        lec('02', 'Sun', 'A', 'G033B'),
+      ],
       labs: [
-        labH('05', 'Wed', 8, 10, 'G015-E'),
-        labH('06', 'Mon', 14, 16, 'G009-D'),
-        labH('07', 'Tue', 12, 14, 'G011-E'),
-        labH('08', 'Tue', 8, 10, 'G011-E'),
+        lab('05', 'Wed', 'A', 'G015-E'),
+        lab('06', 'Mon', 'D', 'G009-D'),
+        lab('07', 'Tue', 'C', 'G011-E'),
+        lab('08', 'Tue', 'A', 'G011-E'),
       ],
       tutorials: [],
-      note: 'No lecture assigned to this instructor in self-service — lab sections only.',
     },
     {
-      name: 'Instructor not assigned',
-      unassigned: true,
-      lectures: [lecH('03', 'Sun', 14, 16, 'G033B')],
+      name: 'Instructor Not Assigned',
+      lectures: [
+        lec('03', 'Sun', 'D', 'G033B'),
+      ],
       labs: [
-        labH('09', 'Tue', 12, 14, 'G013-E'),
-        labH('10', 'Tue', 14, 16, 'G013-E'),
-        labH('11', 'Tue', 12, 14, 'G014-E'),
-        labH('12', 'Tue', 10, 12, 'G013-E'),
+        lab('09', 'Tue', 'C', 'G013-E'),
+        lab('10', 'Tue', 'D', 'G013-E'),
+        lab('11', 'Tue', 'C', 'G014-E'),
+        lab('12', 'Tue', 'B', 'G013-E'),
       ],
       tutorials: [],
-      note: 'Sections listed without an instructor in self-service — kept together exactly as published.',
     },
   ],
 };
@@ -331,12 +346,22 @@ const csai301: Course = {
   instructors: [
     {
       name: 'Sabah Sayed Sayed',
-      lectures: [lecH('01', 'Sun', 10, 12, 'G008-C')],
+      lectures: [
+        lec('01', 'Sun', 'B', 'G008-C'),
+      ],
       labs: [
-        labH('01', 'Mon', 10, 12, 'G016-E'),
-        labH('02', 'Mon', 8, 10, 'G016-E'),
-        labH('03', 'Mon', 10, 12, 'G0012D'),
-        labH('04', 'Mon', 16, 18, 'G0012D'),
+        lab('01', 'Mon', 'B', 'G016-E'),
+        lab('02', 'Mon', 'A', 'G016-E'),
+        lab('03', 'Mon', 'B', 'G0012D'),
+        lab('04', 'Mon', 'E', 'G0012D'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [
+        lab('05', 'Sun', 'D', 'G011-E'),
       ],
       tutorials: [],
     },
@@ -368,16 +393,18 @@ const dsai308: Course = {
   id: 'dsai308',
   code: 'DSAI 308',
   name: 'Deep Learning',
-  c: 3,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Khaled El Sayed El Sayed',
-      lectures: [lecH('01', 'Tue', 12, 14, 'F30-B4')],
+      lectures: [
+        lec('01', 'Tue', 'C', 'F30-B4'),
+      ],
       labs: [
-        labH('01', 'Sun', 12, 14, 'G016-E'),
-        labH('02', 'Sun', 8, 10, 'G016-E'),
-        labH('03', 'Sun', 14, 16, 'G016-E'),
+        lab('01', 'Sun', 'C', 'G016-E'),
+        lab('02', 'Tue', 'E', 'G0010D'),
+        lab('03', 'Wed', 'B', 'S25-B4'),
       ],
       tutorials: [],
     },
@@ -398,7 +425,7 @@ const math303: Course = {
       tutorials: [
         tutH('01', 'Sun', 14, 16, 'F012-D'),
         tutH('02', 'Sun', 12, 14, 'F013-E'),
-        tutH('03', 'Sun', 14, 16, 'F013-E'),
+        tutH('03', 'Tue', 14, 16, 'F031B4'),
       ],
     },
   ],
@@ -508,24 +535,24 @@ const math205: Course = {
   id: 'math205',
   code: 'MATH 205',
   name: 'Discrete Mathematics for Computational Sciences',
-  c: 5,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Ahmed Etman Etman',
-      lectures: [lecH('01', 'Wed', 10, 12, 'F012-D')],
+      lectures: [
+        lec('01', 'Wed', 'B', 'F012-D'),
+      ],
       labs: [],
       tutorials: [],
     },
     {
-      name: 'Instructor not assigned',
-      unassigned: true,
+      name: 'Instructor Not Assigned',
       lectures: [],
       labs: [],
       tutorials: [
-        tutH('01', 'Sun', 14, 16, 'F007-D'),
+        tutH('01', 'Thu', 12, 14, 'Online'),
       ],
-      note: 'Tutorial instructor has not yet been assigned.',
     },
   ],
 };
@@ -539,8 +566,12 @@ const it308: Course = {
   instructors: [
     {
       name: 'Sahar Abdel Rahman',
-      lectures: [lecH('01', 'Tue', 12, 14, 'F031B4')],
-      labs: [labH('01', 'Sun', 14, 16, 'S043-E')],
+      lectures: [
+        lecH('01', 'Tue', 12, 14, 'F031B4'),
+      ],
+      labs: [
+        labH('01', 'Tue', 14, 16, 'S001-A'),
+      ],
       tutorials: [],
     },
   ],
@@ -582,13 +613,17 @@ const itns404: Course = {
   id: 'itns404',
   code: 'ITNS 404',
   name: 'Net Performance Monitoring & Trbl-shooting',
-  c: 7,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Mohamed Mahdy',
-      lectures: [lecH('01', 'Mon', 14, 16, 'G018-E')],
-      labs: [labH('01', 'Wed', 8, 10, 'G011-E')],
+      lectures: [
+        lec('01', 'Thu', 'E', 'Online'),
+      ],
+      labs: [
+        lab('01', 'Wed', 'A', 'G011-E'),
+      ],
       tutorials: [],
     },
   ],
@@ -636,12 +671,11 @@ const it411: Course = {
     {
       name: 'Sahar Abdel Rahman',
       lectures: [lecH('01', 'Mon', 14, 16, 'G033B')],
-      labs: [labH('01', 'Tue', 8, 10, 'G007D')],
+      labs: [labH('01', 'Mon', 16, 18, 'G009-D')],
       tutorials: [],
     },
   ],
 };
-
 const sw301: Course = {
   id: 'sw301',
   code: 'SW 301',
@@ -666,15 +700,27 @@ const sw252: Course = {
   id: 'sw252',
   code: 'SW 252',
   name: 'Embedded Systems',
-  c: 5,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Manar Shaker',
-      lectures: [lecH('01', 'Wed', 10, 12, 'F006-D')],
-      labs: [labH('01', 'Tue', 10, 12, 'G015-E')],
+      lectures: [
+        lec('01', 'Wed', 'B', 'F006-D'),
+      ],
+      labs: [
+        lab('01', 'Tue', 'B', 'G015-E'),
+      ],
       tutorials: [],
-      note: 'Confirmed via the official course-map: belongs in Software Year 3 despite the 252-style numbering.',
+    },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [
+        lab('02', 'Tue', 'D', 'G015-E'),
+        lab('03', 'Tue', 'A', 'G015-E'),
+      ],
+      tutorials: [],
     },
   ],
 };
@@ -683,13 +729,26 @@ const sw302: Course = {
   id: 'sw302',
   code: 'SW 302',
   name: 'User Interface Development',
-  c: 6,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Mohamed Sami Rakha',
-      lectures: [lecH('01', 'Mon', 10, 12, 'F019-E')],
-      labs: [labH('01', 'Tue', 8, 10, 'G015-D')],
+      lectures: [
+        lec('01', 'Mon', 'B', 'F019-E'),
+      ],
+      labs: [
+        lab('01', 'Tue', 'A', 'G015-D'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [
+        lab('02', 'Wed', 'E', 'G018-E'),
+        lab('03', 'Tue', 'E', 'G012-E'),
+      ],
       tutorials: [],
     },
   ],
@@ -699,18 +758,29 @@ const swapd301: Course = {
   id: 'swapd301',
   code: 'SWAPD 301',
   name: 'Software Systems Requirements Dev',
-  c: 7,
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Dina Ezzat',
-      lectures: [lecH('01', 'Wed', 14, 16, 'ZC2')],
-      labs: [labH('01', 'Wed', 8, 10, 'G014-E')],
+      lectures: [
+        lec('01', 'Wed', 'D', 'ZC2'),
+      ],
+      labs: [
+        lab('01', 'Wed', 'A', 'G014-E'),
+      ],
+      tutorials: [],
+    },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [
+        lab('02', 'Wed', 'A', 'G018-E'),
+      ],
       tutorials: [],
     },
   ],
 };
-
 const swgcg301: Course = {
   id: 'swgcg301',
   code: 'SWGCG 301',
@@ -791,7 +861,7 @@ const swapd402: Course = {
   instructors: [
     {
       name: 'Yousry Abdelazeem Abdelazeem',
-      lectures: [lecH('01', 'Tue', 8, 10, 'ZC2')],
+      lectures: [lecH('01', 'Tue', 10, 12, 'F012-E')],
       labs: [labH('01', 'Wed', 10, 12, 'F013-E')],
       tutorials: [],
     },
@@ -802,14 +872,18 @@ const sw402: Course = {
   id: 'sw402',
   code: 'SW 402',
   name: 'Software Project Management',
-  c: 6,
+  c: 1,
   credits: 3,
   instructors: [
     {
-      name: 'Instructor not assigned',
-      unassigned: true,
-      lectures: [lecH('01', 'Tue', 14, 16, 'F006-D')],
-      labs: [labH('01', 'Sun', 8, 10, 'F016-E')],
+      name: 'Instructor Not Assigned',
+      lectures: [
+        lec('01', 'Tue', 'D', 'F006-D'),
+      ],
+      labs: [
+        lab('01', 'Sun', 'A', 'F016-E'),
+        lab('02', 'Sun', 'A', 'G009-D'),
+      ],
       tutorials: [],
     },
   ],
