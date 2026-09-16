@@ -25,6 +25,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch105',
     code: 'SCH 105',
@@ -33,7 +34,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     credits: 2,
     instructors: [
       {
-        name: 'Not Assigned',
+        name: 'Ahmed Hamdy',
         lectures: [
           {
             type: 'Lecture',
@@ -57,6 +58,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch110',
     code: 'SCH 110',
@@ -65,7 +67,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     credits: 2,
     instructors: [
       {
-        name: 'Not Assigned',
+        name: 'Ahmed Hamdy',
         lectures: [
           {
             type: 'Lecture',
@@ -81,6 +83,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch201',
     code: 'SCH 201',
@@ -105,6 +108,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch244',
     code: 'SCH 244',
@@ -123,12 +127,21 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
             end: 16 * 60,
             room: 'F29-B4',
           },
+          {
+            type: 'Lecture',
+            sec: '02',
+            day: 'Sun',
+            start: 20 * 60,
+            end: 22 * 60,
+            room: 'Online',
+          },
         ],
         labs: [],
         tutorials: [],
       },
     ],
   },
+
   {
     id: 'sch258',
     code: 'SCH 258',
@@ -153,6 +166,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch260',
     code: 'SCH 260',
@@ -185,7 +199,8 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
-   {
+
+  {
     id: 'sch261',
     code: 'SCH 261',
     name: 'Engineering Project Management',
@@ -225,6 +240,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch262',
     code: 'SCH 262',
@@ -249,6 +265,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch263',
     code: 'SCH 263',
@@ -273,6 +290,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch264',
     code: 'SCH 264',
@@ -297,6 +315,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch273',
     code: 'SCH 273',
@@ -321,6 +340,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
       },
     ],
   },
+
   {
     id: 'sch277',
     code: 'SCH 277',
