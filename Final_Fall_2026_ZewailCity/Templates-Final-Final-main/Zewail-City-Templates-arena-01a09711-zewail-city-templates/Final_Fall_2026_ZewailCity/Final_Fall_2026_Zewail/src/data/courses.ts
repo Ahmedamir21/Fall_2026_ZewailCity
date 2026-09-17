@@ -59,10 +59,20 @@ const csai201: Course = {
       ],
       tutorials: [],
     },
+
+    {
+      name: 'Elmahdy Maree Maree',
+      lectures: [
+        lec('02', 'Tue', 'D', 'G038B'),
+        lec('04', 'Tue', 'C', 'F005-F'),
+      ],
+      labs: [],
+      tutorials: [],
+    },
+
     {
       name: 'Mohamed Elhalaby Elhalaby',
       lectures: [
-        lec('02', 'Tue', 'D', 'G038B'),
         lec('03', 'Wed', 'A', 'F019-E'),
       ],
       labs: [
@@ -77,6 +87,7 @@ const csai201: Course = {
       ],
       tutorials: [],
     },
+
     {
       name: 'Instructor Not Assigned',
       lectures: [],
@@ -94,7 +105,7 @@ const csai201: Course = {
 const csai202: Course = {
   id: 'csai202',
   code: 'CSAI 202',
-  name: 'Introduction to Database Systems',
+  name: 'Computer Organization',
   c: 1,
   credits: 3,
   instructors: [
@@ -145,8 +156,8 @@ const csai202: Course = {
 const csai205: Course = {
   id: 'csai205',
   code: 'CSAI 205',
-  name: 'Fundamentals of Circuits and Electronics',
-  c: 3,
+  name: 'Operating Systems',
+  c: 1,
   credits: 3,
   instructors: [
     {
@@ -225,19 +236,21 @@ const it205: Course = {
 const dsai203: Course = {
   id: 'dsai203',
   code: 'DSAI 203',
-  name: 'Data Integration and Visualization',
-  c: 5,
+  name: 'Data Science',
+  c: 1,
   credits: 3,
-  group: 'slot5',
   instructors: [
     {
       name: 'Saeed Mohsen',
-      lectures: [lec('01', 'Tue', 'A', 'G006-B')],
+      lectures: [
+        lec('01', 'Tue', 'A', 'G006-B'),
+      ],
       labs: [
         lab('01', 'Wed', 'A', 'G0012D'),
         lab('02', 'Wed', 'A', 'S001-A'),
         lab('03', 'Wed', 'B', 'S001-A'),
         lab('04', 'Wed', 'D', 'S001-A'),
+        lab('05', 'Wed', 'E', 'S001-A'),
       ],
       tutorials: [],
     },
@@ -248,7 +261,6 @@ const dsai203: Course = {
         lec('03', 'Mon', 'A', 'G033B'),
       ],
       labs: [
-        lab('05', 'Wed', 'E', 'S001-A'),
         lab('06', 'Tue', 'A', 'S001-A'),
         lab('07', 'Tue', 'C', 'S001-A'),
         lab('08', 'Tue', 'B', 'S001-A'),
@@ -266,7 +278,7 @@ const dsai203: Course = {
 const csai203: Course = {
   id: 'csai203',
   code: 'CSAI 203',
-  name: 'Database Systems',
+  name: 'Object Oriented Programming',
   c: 1,
   credits: 3,
   instructors: [
@@ -290,7 +302,7 @@ const csai203: Course = {
       ],
       labs: [
         lab('05', 'Wed', 'A', 'G015-E'),
-        lab('06', 'Mon', 'D', 'G009-D'),
+        lab('06', 'Mon', 'C', 'G009-D'),
         lab('07', 'Tue', 'C', 'G011-E'),
         lab('08', 'Tue', 'A', 'G011-E'),
       ],
@@ -306,9 +318,6 @@ const csai203: Course = {
         lab('10', 'Tue', 'D', 'G013-E'),
         lab('11', 'Tue', 'C', 'G014-E'),
         lab('12', 'Tue', 'B', 'G013-E'),
-        lab('13', 'Mon', 'D', 'G014-E'),
-        lab('14', 'Mon', 'C', 'G014-E'),
-        lab('15', 'Mon', 'B', 'G013-E'),
       ],
       tutorials: [],
     },
@@ -319,18 +328,14 @@ const csai203: Course = {
 const phys104: Course = {
   id: 'phys104',
   code: 'PHYS 104',
-  name: 'Physics 2',
-  c: 7,
+  name: 'Physics II',
+  c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Ashraf Abdelwahed',
-      lectures: [lecH('01', 'Tue', 12, 14, 'F027B1')],
-      tutorials: [
-        tutH('01', 'Sun', 8, 9, 'F026B1'),
-        tutH('02', 'Sun', 9, 10, 'F026B1'),
-        tutH('03', 'Mon', 15, 16, 'F004-D'),
-        tutH('04', 'Mon', 14, 15, 'F014-E'),
+      lectures: [
+        lecH('01', 'Tue', 12, 14, 'F027B1'),
       ],
       labs: [
         labH('01', 'Mon', 10, 12, 'S26-B3'),
@@ -338,10 +343,15 @@ const phys104: Course = {
         labH('03', 'Sun', 10, 12, 'S26-B3'),
         labH('04', 'Sun', 14, 16, 'S26-B3'),
       ],
+      tutorials: [
+        tutH('01', 'Sun', 8, 9, 'F026B1'),
+        tutH('02', 'Sun', 9, 10, 'F026B1'),
+        tutH('03', 'Mon', 15, 16, 'F004-D'),
+        tutH('04', 'Mon', 14, 15, 'F014-E'),
+      ],
     },
   ],
 };
-
 /* ==================================================================== */
 /* Year 3 & Year 4 courses                                               */
 /* ==================================================================== */
