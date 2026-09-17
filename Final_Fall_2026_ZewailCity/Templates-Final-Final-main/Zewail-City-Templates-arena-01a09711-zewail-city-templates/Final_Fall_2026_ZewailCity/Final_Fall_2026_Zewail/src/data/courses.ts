@@ -48,7 +48,9 @@ const csai201: Course = {
   instructors: [
     {
       name: 'Mayada Mansour Ali',
-      lectures: [lec('01', 'Tue', 'C', 'G038B')],
+      lectures: [
+        lec('01', 'Tue', 'C', 'G038B'),
+      ],
       labs: [
         lab('01', 'Wed', 'D', 'G012-E'),
         lab('02', 'Wed', 'B', 'G012-E'),
@@ -81,6 +83,8 @@ const csai201: Course = {
       labs: [
         lab('13', 'Sun', 'D', 'S043-E'),
         lab('14', 'Sun', 'E', 'S043-E'),
+        lab('15', 'Mon', 'A', 'G009-D'),
+        lab('16', 'Sun', 'B', 'G009-D'),
       ],
       tutorials: [],
     },
@@ -128,8 +132,10 @@ const csai202: Course = {
         lab('10', 'Tue', 'D', 'G012-E'),
         lab('11', 'Wed', 'A', 'G013-E'),
         lab('12', 'Sun', 'E', 'G0011D'),
-        lab('13', 'Mon', 'D', 'S043-E'),
+        lab('13', 'Mon', 'E', 'S043-E'),
         lab('14', 'Mon', 'A', 'G015-D'),
+        lab('15', 'Sun', 'E', 'G009-D'),
+        lab('16', 'Mon', 'E', 'G011-E'),
       ],
       tutorials: [],
     },
@@ -260,7 +266,7 @@ const dsai203: Course = {
 const csai203: Course = {
   id: 'csai203',
   code: 'CSAI 203',
-  name: 'Introduction to Software Engineering',
+  name: 'Database Systems',
   c: 1,
   credits: 3,
   instructors: [
@@ -300,6 +306,9 @@ const csai203: Course = {
         lab('10', 'Tue', 'D', 'G013-E'),
         lab('11', 'Tue', 'C', 'G014-E'),
         lab('12', 'Tue', 'B', 'G013-E'),
+        lab('13', 'Mon', 'D', 'G014-E'),
+        lab('14', 'Mon', 'C', 'G014-E'),
+        lab('15', 'Mon', 'B', 'G013-E'),
       ],
       tutorials: [],
     },
