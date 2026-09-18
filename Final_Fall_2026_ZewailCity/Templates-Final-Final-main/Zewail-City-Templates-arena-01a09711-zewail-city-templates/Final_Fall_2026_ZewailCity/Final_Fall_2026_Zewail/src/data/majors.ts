@@ -117,7 +117,7 @@ export const MAJORS: Major[] = [
       {
         id: 'y2',
         label: 'Year 2 (Sophomore)',
-        courseIds: ['csai201', 'csai202', 'csai203', 'phys104', 'math105'],
+        courseIds: ['csai201', 'csai202', 'csai205', 'csai203', 'phys104', 'math105'],
       },
       {
         id: 'y3',
