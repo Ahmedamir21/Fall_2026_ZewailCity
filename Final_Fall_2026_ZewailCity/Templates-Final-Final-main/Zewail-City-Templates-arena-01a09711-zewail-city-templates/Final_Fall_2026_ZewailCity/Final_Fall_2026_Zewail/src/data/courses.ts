@@ -105,7 +105,7 @@ const csai201: Course = {
 const csai202: Course = {
   id: 'csai202',
   code: 'CSAI 202',
-  name: 'Computer Organization',
+  name: 'Introduction to Database Systems',
   c: 1,
   credits: 3,
   instructors: [
@@ -156,7 +156,7 @@ const csai202: Course = {
 const csai205: Course = {
   id: 'csai205',
   code: 'CSAI 205',
-  name: 'Operating Systems',
+  name: 'Fundamentals of Circuits and Electronics',
   c: 1,
   credits: 3,
   instructors: [
@@ -195,7 +195,9 @@ const math105: Course = {
   instructors: [
     {
       name: 'Walaa El-Sharkawy El-Sharkawy',
-      lectures: [lec('01', 'Tue', 'A', 'G009-B')],
+      lectures: [
+        lec('01', 'Tue', 'A', 'G009-B'),
+      ],
       labs: [],
       tutorials: [
         tut('01', 'Tue', 'C', 'G009-B'),
@@ -205,12 +207,31 @@ const math105: Course = {
     },
     {
       name: 'Mohamed Fawzy Fawzy',
-      lectures: [lec('02', 'Wed', 'D', 'G009-B')],
+      lectures: [
+        lec('02', 'Wed', 'D', 'G009-B'),
+      ],
       labs: [],
       tutorials: [
         tut('04', 'Sun', 'A', 'G008-C'),
         tut('05', 'Tue', 'A', 'G008-C'),
         tut('06', 'Sun', 'C', 'G008-C'),
+      ],
+    },
+    {
+      name: 'Ahmed El-Deeb',
+      lectures: [
+        lec('03', 'Tue', 'B', 'G025B'),
+      ],
+      labs: [],
+      tutorials: [],
+    },
+    {
+      name: 'Instructor Not Assigned',
+      lectures: [],
+      labs: [],
+      tutorials: [
+        tut('07', 'Mon', 'E', 'F004-D'),
+        tut('08', 'Sun', 'B', 'G035-B'),
       ],
     },
   ],
@@ -236,7 +257,7 @@ const it205: Course = {
 const dsai203: Course = {
   id: 'dsai203',
   code: 'DSAI 203',
-  name: 'Data Science',
+  name: 'Data Integration and Visualization',
   c: 1,
   credits: 3,
   instructors: [
@@ -278,15 +299,13 @@ const dsai203: Course = {
 const csai203: Course = {
   id: 'csai203',
   code: 'CSAI 203',
-  name: 'Object Oriented Programming',
+  name: 'Introduction to Software Engineering',
   c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Mohamed Sami Rakha',
-      lectures: [
-        lec('01', 'Sun', 'D', 'G006-B'),
-      ],
+      lectures: [lec('01', 'Sun', 'D', 'G006-B')],
       labs: [
         lab('01', 'Mon', 'E', 'G0011D'),
         lab('02', 'Mon', 'A', 'G014-E'),
@@ -297,9 +316,7 @@ const csai203: Course = {
     },
     {
       name: 'Sabah Sayed Sayed',
-      lectures: [
-        lec('02', 'Sun', 'A', 'G033B'),
-      ],
+      lectures: [lec('02', 'Sun', 'A', 'G033B')],
       labs: [
         lab('05', 'Wed', 'A', 'G015-E'),
         lab('06', 'Mon', 'C', 'G009-D'),
@@ -310,9 +327,7 @@ const csai203: Course = {
     },
     {
       name: 'Instructor Not Assigned',
-      lectures: [
-        lec('03', 'Sun', 'D', 'G033B'),
-      ],
+      lectures: [lec('03', 'Sun', 'D', 'G033B')],
       labs: [
         lab('09', 'Tue', 'C', 'G013-E'),
         lab('10', 'Tue', 'D', 'G013-E'),
@@ -328,15 +343,13 @@ const csai203: Course = {
 const phys104: Course = {
   id: 'phys104',
   code: 'PHYS 104',
-  name: 'Physics II',
+  name: 'Physics 2',
   c: 1,
   credits: 3,
   instructors: [
     {
       name: 'Ashraf Abdelwahed',
-      lectures: [
-        lecH('01', 'Tue', 12, 14, 'F027B1'),
-      ],
+      lectures: [lecH('01', 'Tue', 12, 14, 'F027B1')],
       labs: [
         labH('01', 'Mon', 10, 12, 'S26-B3'),
         labH('02', 'Mon', 14, 16, 'S26-B3'),
