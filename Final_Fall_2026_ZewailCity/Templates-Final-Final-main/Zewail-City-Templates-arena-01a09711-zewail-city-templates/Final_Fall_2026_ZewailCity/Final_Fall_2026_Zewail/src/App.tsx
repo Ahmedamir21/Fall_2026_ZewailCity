@@ -22,6 +22,7 @@ import {
   emptyPick,
   mergeHiddenSummaries,
   optionStates,
+  optionsFor,
   pickIssues,
   summarizeHidden,
   uid,
@@ -53,7 +54,7 @@ import { AboutPage } from './components/AboutPage';
 import { BestSchedule } from './components/BestSchedule';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
-import { ScheduleAssistant } from './components/ScheduleAssistant';
+import { ScheduleAssistant, type AssistantProposal } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 
@@ -129,7 +130,7 @@ export default function App() {
    * Nothing else is stored — no GPA value, no academic-standing label of any kind.
    */
   const [creditCap, setCreditCap] = useState<CreditCap | null>(() => savedState?.creditCap ?? null);
-  const [capNoteDismissed, setCapNoteDismissed] = useState(() => (savedState?.creditCap ?? null) != null);
+  const [capNoteDismissed, setCapNoteDismissed] = useState(true);
 
   /** Inline rejection message + per-card shake state when an addition would exceed the cap. */
   const [capNotice, setCapNotice] = useState<string | null>(null);
@@ -461,7 +462,7 @@ export default function App() {
     setYearId(null);
     setShowYearPicker(false);
     setCreditCap(null);
-    setCapNoteDismissed(false);
+    setCapNoteDismissed(true);
     setCapNotice(null);
     setCapShake(null);
     setCrossYearOpen(false);
@@ -478,7 +479,7 @@ export default function App() {
       setComboIndex(0);
       setBest(null);
       setCreditCap(null);
-      setCapNoteDismissed(false);
+      setCapNoteDismissed(true);
       setCapNotice(null);
       setCapShake(null);
 
@@ -770,6 +771,35 @@ export default function App() {
     [takenCourses],
   );
 
+  const previousCreditTotal = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (previousCreditTotal.current === totalCredits) return;
+    previousCreditTotal.current = totalCredits;
+
+    const notices: Record<number, ToastState> = {
+      13: {
+        message: 'You’re at 13 credits. If your GPA is 2.00 or higher, you can register up to 18 credits.',
+        tone: 'info',
+      },
+      17: {
+        message: 'You’re at 17 credits — 1 credit away from the standard 18-credit limit.',
+        tone: 'info',
+      },
+      18: {
+        message: 'You’ve reached 18 credits. This is the standard maximum for GPA 2.00 or higher.',
+        tone: 'warning',
+      },
+      21: {
+        message: 'You’ve reached 21 credits — this is the maximum credit limit.',
+        tone: 'danger',
+      },
+    };
+
+    const notice = notices[totalCredits];
+    if (notice) showToast(notice);
+  }, [totalCredits, showToast]);
+
   const freeTime = useMemo(
     () => computeFreeTime(draft.map((d) => d.meeting)),
     [draft],
@@ -830,6 +860,82 @@ export default function App() {
     [yearId, requireComplete, typeFilter, courseFilter, preferences, instructorFilter],
   );
 
+  const applyAssistantProposal = useCallback(
+    (proposal: AssistantProposal): { ok: boolean; message: string } => {
+      if (!major || !proposal.changes.length) {
+        return { ok: false, message: 'There are no valid changes to apply.' };
+      }
+
+      const allowedCourseIds = new Set(allAvailableCourseIds(major));
+      const previousPicks = picksRef.current;
+      const next: PickState = Object.fromEntries(
+        Object.entries(previousPicks).map(([courseId, pick]) => [courseId, { ...pick }]),
+      );
+
+      for (const change of proposal.changes) {
+        const course = COURSE_BY_ID[change.courseId];
+
+        if (!course || !allowedCourseIds.has(change.courseId)) {
+          return { ok: false, message: 'That proposal contains a course that is not available for your current major.' };
+        }
+
+        if (change.type === 'remove_course') {
+          delete next[change.courseId];
+          continue;
+        }
+
+        if (!next[change.courseId]) {
+          if (wouldExceedCap(next, change.courseId, creditCapRef.current)) {
+            return { ok: false, message: 'That change would exceed your selected credit limit.' };
+          }
+          next[change.courseId] = emptyPick();
+        }
+
+        if (change.type === 'add_course') continue;
+
+        const option = optionsFor(course, change.meetingType).find((item) => item.key === change.meetingId);
+        if (!option) {
+          return { ok: false, message: `That ${change.meetingType.toLowerCase()} section is no longer available in the planner data.` };
+        }
+
+        next[change.courseId] = {
+          ...next[change.courseId],
+          [change.meetingType]: option.key,
+        };
+      }
+
+      const nextCourses = Object.keys(next)
+        .map((courseId) => COURSE_BY_ID[courseId])
+        .filter((course): course is Course => Boolean(course));
+
+      const nextOverlaps = draftOverlaps(draftMeetings(nextCourses, next));
+      if (nextOverlaps.length > 0) {
+        return { ok: false, message: 'I did not apply that proposal because it would create a timetable conflict.' };
+      }
+
+      setPicks(next);
+      setComboIndex(0);
+      setBest(null);
+
+      showToast({
+        message: 'AI schedule changes applied.',
+        actionLabel: 'Undo',
+        onAction: () => {
+          setPicks(previousPicks);
+          setComboIndex(0);
+          setBest(null);
+          setToast(null);
+        },
+      });
+
+      return {
+        ok: true,
+        message: `✓ Applied ${proposal.changes.length} validated change${proposal.changes.length === 1 ? '' : 's'}. You can undo them from the notification.`,
+      };
+    },
+    [major, showToast],
+  );
+
   const assistantContext = useMemo<Record<string, unknown>>(
     () => ({
       term: 'Fall 2026 · Main Session',
@@ -837,6 +943,9 @@ export default function App() {
       major: major ? { id: major.id, title: major.title, subtitle: major.subtitle } : null,
       year: yearPlan ? { id: yearPlan.id, label: yearPlan.label } : null,
       creditLimit: effectiveCap,
+      selectedCreditCap: creditCap,
+      generalMaximumCredits: 21,
+      overLoadSelected: creditCap === 21,
       totalSelectedCredits: totalCredits,
       scheduleStats: {
         sessions: metrics.sessions,
@@ -857,11 +966,13 @@ export default function App() {
         minutes: overlap.minutes,
       })),
       selectedCourses: detailEntries.map((entry) => ({
+        courseId: entry.course.id,
         code: entry.course.code,
         name: entry.course.name,
         credits: entry.course.credits ?? null,
         meetings: entry.pairing.meetings.map((meeting) => ({
           type: meeting.type,
+          meetingId: uid(meeting),
           section: meeting.sec,
           day: meeting.day,
           time: formatRange(meeting.start, meeting.end),
@@ -875,6 +986,7 @@ export default function App() {
         })),
       })),
       availableCourses: courses.map((course) => ({
+        courseId: course.id,
         code: course.code,
         name: course.name,
         credits: course.credits ?? null,
@@ -882,6 +994,7 @@ export default function App() {
         sections: course.instructors.flatMap((instructor) => [
           ...instructor.lectures.map((meeting) => ({
             type: meeting.type,
+            meetingId: uid(meeting),
             section: meeting.sec,
             day: meeting.day,
             time: formatRange(meeting.start, meeting.end),
@@ -890,6 +1003,7 @@ export default function App() {
           })),
           ...instructor.labs.map((meeting) => ({
             type: meeting.type,
+            meetingId: uid(meeting),
             section: meeting.sec,
             day: meeting.day,
             time: formatRange(meeting.start, meeting.end),
@@ -898,6 +1012,7 @@ export default function App() {
           })),
           ...instructor.tutorials.map((meeting) => ({
             type: meeting.type,
+            meetingId: uid(meeting),
             section: meeting.sec,
             day: meeting.day,
             time: formatRange(meeting.start, meeting.end),
@@ -1610,7 +1725,7 @@ export default function App() {
         </div>
       )}
 
-      {major && yearPlan && !showAbout && <ScheduleAssistant context={assistantContext} />}
+      {major && yearPlan && !showAbout && <ScheduleAssistant context={assistantContext} onApplyProposal={applyAssistantProposal} />}
 
       <CommandPalette
         open={commandOpen}
