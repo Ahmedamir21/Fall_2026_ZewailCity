@@ -199,6 +199,7 @@ export default function App() {
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
   /** Lifted so the Credits Dashboard and the mobile action bar can open the preferences modal. */
@@ -1172,6 +1173,7 @@ export default function App() {
                 onOpenCrossYear={() => setCrossYearOpen(true)}
                 capNotice={capNotice}
                 shake={capShake}
+                onHoverCourse={setHoveredCourseId}
               />
 
               <div className="space-y-3">
@@ -1283,6 +1285,7 @@ export default function App() {
                           bestLabel={bestLabel}
                           variant={noConflicts ? 'final' : 'draft'}
                           yearBadges={yearBadges}
+                          highlightedCourseId={hoveredCourseId}
                         />
                       </div>
                     )}
@@ -1479,6 +1482,7 @@ export default function App() {
                 bestLabel={bestLabel}
                 variant={noConflicts ? 'final' : 'draft'}
                 yearBadges={yearBadges}
+                highlightedCourseId={hoveredCourseId}
               />
             )}
           </div>
