@@ -11,6 +11,7 @@ import {
 } from '../lib/bestSchedule';
 import type { SchedulePreferences } from '../lib/preferences';
 import type { ShareExtras } from '../lib/share';
+import type { PlannerLocks } from '../lib/assistantControls';
 import { SchedulePreferencesPanel } from './SchedulePreferences';
 import { CompareSchedules } from './CompareSchedules';
 import { ShareSchedule } from './ShareSchedule';
@@ -28,6 +29,7 @@ interface Props {
   onPrefsOpenChange: (open: boolean) => void;
   onPreferencesChange: (next: SchedulePreferences) => void;
   onUse: (schedule: GeneratedSchedule) => void;
+  locks?: PlannerLocks;
 }
 
 function picksFromSchedule(schedule: GeneratedSchedule): PickState {
@@ -52,6 +54,7 @@ export function BestSchedule({
   onPrefsOpenChange,
   onPreferencesChange,
   onUse,
+  locks,
 }: Props) {
   const [report, setReport] = useState<BestScheduleReport | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -64,7 +67,7 @@ export function BestSchedule({
   }, [courseKey]);
 
   const generate = (prefsOverride?: SchedulePreferences) => {
-    setReport(generateBestSchedules(courses, prefsOverride ?? preferences));
+    setReport(generateBestSchedules(courses, prefsOverride ?? preferences, picks, locks));
     setCompareIds([]);
   };
 
