@@ -14,16 +14,19 @@ export type AssistantProposalChange =
       meetingType: MeetingType;
       meetingId: string;
       label?: string;
+      reason?: string;
     }
   | {
       type: 'add_course';
       courseId: string;
       label?: string;
+      reason?: string;
     }
   | {
       type: 'remove_course';
       courseId: string;
       label?: string;
+      reason?: string;
     };
 
 export interface AssistantProposal {
@@ -41,12 +44,25 @@ export interface AssistantProposalPreview {
     credits: string;
     conflicts: string;
   };
+  changes?: Array<{
+    title: string;
+    before?: string;
+    after?: string;
+    reason?: string;
+  }>;
+  conflict?: {
+    title: string;
+    details: string[];
+  };
 }
 
 interface Props {
   context: Record<string, unknown>;
   onPreviewProposal?: (proposal: AssistantProposal) => AssistantProposalPreview;
   onApplyProposal?: (proposal: AssistantProposal) => { ok: boolean; message: string };
+  constraints?: string[];
+  onAddConstraints?: (constraints: string[]) => void;
+  onRemoveConstraint?: (constraint: string) => void;
 }
 
 const QUICK_PROMPTS = [
@@ -57,7 +73,7 @@ const QUICK_PROMPTS = [
   'Suggest another course',
 ];
 
-export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal }: Props) {
+export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal, constraints = [], onAddConstraints, onRemoveConstraint }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [input, setInput] = useState('');
@@ -104,7 +120,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
       });
 
       const raw = await response.text();
-      let data: { text?: string; error?: string; proposal?: AssistantProposal | null } = {};
+      let data: { text?: string; error?: string; proposal?: AssistantProposal | null; constraintsAdd?: string[] } = {};
 
       try {
         data = raw ? JSON.parse(raw) : {};
@@ -120,6 +136,9 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
       if (!data.text) throw new Error('The assistant returned an empty response.');
 
       setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
+      if (Array.isArray(data.constraintsAdd) && data.constraintsAdd.length > 0) {
+        onAddConstraints?.(data.constraintsAdd);
+      }
 
       if (
         data.proposal &&
@@ -141,6 +160,17 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
   };
 
   const proposalPreview = proposal && onPreviewProposal ? onPreviewProposal(proposal) : null;
+
+  const askAlternative = () => {
+    const blocked = proposalPreview?.ok === false;
+    const detail = blocked && proposalPreview?.message ? ` The previous proposal was blocked because: ${proposalPreview.message}` : '';
+    void sendMessage(`Show me another valid conflict-free option for my last scheduling request. Do not repeat the same proposal.${detail}`);
+  };
+
+  const repairConflict = () => {
+    const detail = proposalPreview?.message ? ` Current validator result: ${proposalPreview.message}` : '';
+    void sendMessage(`Repair the last requested change so the final schedule is conflict-free. Keep my requested change if possible, modify only unlocked meetings, and use the fewest extra changes.${detail}`);
+  };
 
   const applyProposal = () => {
     if (!proposal || !onApplyProposal) return;
@@ -182,6 +212,17 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
               </div>
               <button type="button" className="btn btn-tap px-3" onClick={() => setOpen(false)} aria-label="Close assistant">✕</button>
             </header>
+
+            {constraints.length > 0 && (
+              <div className="assistant-constraints" aria-label="Persistent assistant constraints">
+                {constraints.map((constraint) => (
+                  <span key={constraint} className="assistant-constraint-chip">
+                    <span>{constraint}</span>
+                    <button type="button" onClick={() => onRemoveConstraint?.(constraint)} aria-label={`Remove constraint ${constraint}`}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div ref={listRef} className="assistant-messages">
               {messages.length === 0 && (
@@ -231,16 +272,28 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
                   </div>
 
                   <div className="mt-2.5 space-y-1.5">
-                    {proposal.changes.map((change, index) => (
-                      <div key={index} className="assistant-proposal-row">
-                        <span aria-hidden>→</span>
-                        <span>{change.label || (
-                          change.type === 'set_meeting'
-                            ? `${change.courseId} · ${change.meetingType}`
-                            : change.type === 'add_course'
-                              ? `Add ${change.courseId}`
-                              : `Remove ${change.courseId}`
-                        )}</span>
+                    {(proposalPreview?.changes ?? proposal.changes.map((change) => ({
+                      title: change.label || (
+                        change.type === 'set_meeting'
+                          ? `${change.courseId} · ${change.meetingType}`
+                          : change.type === 'add_course'
+                            ? `Add ${change.courseId}`
+                            : `Remove ${change.courseId}`
+                      ),
+                      reason: change.reason,
+                    }))).map((change, index) => (
+                      <div key={index} className="assistant-proposal-row assistant-proposal-diff">
+                        <div className="min-w-0 flex-1">
+                          <strong>{change.title}</strong>
+                          {(change.before || change.after) && (
+                            <div className="assistant-before-after">
+                              <span><small>Before</small>{change.before || '—'}</span>
+                              <b aria-hidden>→</b>
+                              <span><small>After</small>{change.after || '—'}</span>
+                            </div>
+                          )}
+                          {change.reason && <p className="assistant-change-reason">{change.reason}</p>}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -256,18 +309,33 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal 
 
                   {proposalPreview && !proposalPreview.ok && (
                     <div className="assistant-error mt-3" role="alert">
-                      {proposalPreview.message || 'This proposal cannot be applied safely.'}
+                      <div>{proposalPreview.message || 'This proposal cannot be applied safely.'}</div>
+                      {proposalPreview.conflict && (
+                        <details className="assistant-conflict-details">
+                          <summary>Explain conflict</summary>
+                          <strong>{proposalPreview.conflict.title}</strong>
+                          {proposalPreview.conflict.details.map((detail) => <span key={detail}>{detail}</span>)}
+                        </details>
+                      )}
                     </div>
                   )}
 
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
                       className="btn btn-accent btn-tap flex-1"
                       onClick={applyProposal}
                       disabled={proposalPreview?.ok === false}
                     >
-                      Apply changes
+                      {proposalPreview?.ok === false ? 'Can’t apply — blocked' : 'Apply changes'}
+                    </button>
+                    {proposalPreview?.ok === false && (
+                      <button type="button" className="btn btn-tap" onClick={repairConflict} disabled={sending}>
+                        Repair conflict
+                      </button>
+                    )}
+                    <button type="button" className="btn btn-tap" onClick={askAlternative} disabled={sending}>
+                      Show another option
                     </button>
                     <button type="button" className="btn btn-tap" onClick={() => setProposal(null)}>
                       Cancel
