@@ -87,7 +87,7 @@ export function buildCalendarIcs(meetings: DraftMeeting[]): string {
 
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${escapeIcs(uid)}@zc-schedule-builder`,
+      `UID:${escapeIcs(uid)}@planora-planner`,
       `DTSTAMP:${utcStamp()}`,
       `DTSTART;TZID=Africa/Cairo:${localStamp(first, meeting.start)}`,
       `DTEND;TZID=Africa/Cairo:${localStamp(first, meeting.end)}`,
