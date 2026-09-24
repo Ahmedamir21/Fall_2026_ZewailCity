@@ -4,7 +4,15 @@
  * Course/section/instructor data lives in src/data/.
  * Product logic should never hard-code a semester name.
  */
+/**
+ * Pre-semester-key share links/local state were all created for Fall 2026.
+ * Keep this constant unchanged forever; it lets future terms reject old
+ * untagged state safely instead of interpreting it against new data.
+ */
+export const LEGACY_UNTAGGED_SEMESTER_KEY = 'fall-2026-main';
+
 export const SEMESTER_CONFIG = {
+  key: 'fall-2026-main',
   institution: 'Zewail City',
   plannerName: 'Schedule Builder',
   term: 'Fall',
