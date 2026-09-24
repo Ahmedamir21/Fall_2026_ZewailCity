@@ -18,6 +18,7 @@ import { DEFAULT_PREFERENCES, sanitizePreferences, toCompactPreferences, fromCom
 import { computeFreeTime, WINDOW_START, WINDOW_END } from '../src/lib/freeTime';
 import { encodeSchedule, decodeSchedule, buildShareUrl, readScheduleFromLocation } from '../src/lib/share';
 import { loadAppState, saveAppState, type PersistedState } from '../src/lib/appState';
+import { SEMESTER_CONFIG } from '../src/config/semester';
 import {
   emptyPick,
   optionStates,
@@ -397,6 +398,7 @@ globalThis.localStorage = {
   removeItem: (k: string) => void store.delete(k),
 };
 const saved: PersistedState = {
+  semesterKey: SEMESTER_CONFIG.key,
   majorId: 'software',
   yearId: null,
   creditCap: null,
@@ -603,6 +605,8 @@ check('isValidYearId accepts only y1/y2/y3/y4', isValidYearId('y1') && isValidYe
   check('share codec: legacy v3 payload still decodes', !!dec && dec.majorId === 'software' && dec.yearId === undefined);
   const badYear = decodeSchedule(base64UrlEncodeShim(JSON.stringify({ v: 4, m: 'software', r: [], y: 'y9' })));
   check('share codec: junk year id dropped, not applied', !!badYear && badYear.yearId === undefined);
+  const wrongTerm = decodeSchedule(base64UrlEncodeShim(JSON.stringify({ v: 5, t: 'future-term-test', m: 'software', r: [] })));
+  check('share codec: another semester is rejected instead of mapped onto current data', wrongTerm === null);
 }
 
 /* yearId + creditCap persistence & corruption tolerance */
@@ -616,6 +620,8 @@ check('isValidYearId accepts only y1/y2/y3/y4', isValidYearId('y1') && isValidYe
   localStorage.setItem('zw-app-state-v2', JSON.stringify({ majorId: 'software', picks: {}, instructorFilter: {} }));
   const legacyState = loadAppState()!;
   check('appState: pre-year saved state loads with null year (defaults to first year later)', legacyState.yearId === null && legacyState.creditCap === null);
+  localStorage.setItem('zw-app-state-v2', JSON.stringify({ semesterKey: 'future-term-test', majorId: 'software', picks: {}, instructorFilter: {} }));
+  check('appState: another semester is rejected instead of restored into current data', loadAppState() === null);
 }
 
 /* ================= 12. no-fixed-schedule placeholder courses (Part 1b) ================= */
