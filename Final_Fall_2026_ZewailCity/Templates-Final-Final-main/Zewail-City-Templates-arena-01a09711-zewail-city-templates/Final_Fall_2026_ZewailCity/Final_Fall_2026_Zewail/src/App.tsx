@@ -51,6 +51,8 @@ import { CreditsDashboard } from './components/CreditsDashboard';
 import { ShareSchedule } from './components/ShareSchedule';
 import { AboutPage } from './components/AboutPage';
 import { BestSchedule } from './components/BestSchedule';
+import { CommandPalette } from './components/CommandPalette';
+import { Toast, type ToastState } from './components/Toast';
 
 function isAboutHash(): boolean {
   return typeof window !== 'undefined' && (window.location.hash ?? '').replace('#', '') === 'about';
@@ -195,6 +197,9 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(isAboutHash);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const toastTimer = useRef<number | null>(null);
 
   /** Lifted so the Credits Dashboard and the mobile action bar can open the preferences modal. */
   const [prefsOpen, setPrefsOpen] = useState(false);
@@ -212,7 +217,31 @@ export default function App() {
     window.addEventListener('hashchange', onHashChange);
 
     return () => window.removeEventListener('hashchange', onHashChange);
+  }, [showToast]);
+
+  const showToast = useCallback((next: ToastState) => {
+    setToast(next);
+    if (toastTimer.current != null) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 4500);
   }, []);
+
+  useEffect(() => {
+    const onCommandKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      const editing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandOpen((v) => !v);
+        return;
+      }
+      if (!editing && e.key === '/' && !commandOpen) {
+        e.preventDefault();
+        setCommandOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onCommandKey);
+    return () => window.removeEventListener('keydown', onCommandKey);
+  }, [commandOpen]);
 
   const openAbout = useCallback(() => {
     window.location.hash = 'about';
@@ -473,6 +502,7 @@ export default function App() {
   }, []);
 
   const toggleCourse = useCallback((courseId: string, taking: boolean) => {
+    const course = COURSE_BY_ID[courseId];
     if (taking) {
       if (wouldExceedCap(picksRef.current, courseId, creditCapRef.current)) {
         const cap = effectiveCreditCap(creditCapRef.current);
@@ -499,6 +529,8 @@ export default function App() {
       }
     }
 
+    const previousPick = picksRef.current[courseId];
+
     setPicks((prev) => {
       const next = { ...prev };
 
@@ -507,6 +539,21 @@ export default function App() {
 
       return next;
     });
+
+    if (course) {
+      if (taking) {
+        showToast({ message: `${course.code} added to your schedule.` });
+      } else {
+        showToast({
+          message: `${course.code} removed.`,
+          actionLabel: 'Undo',
+          onAction: () => {
+            setPicks((prev) => ({ ...prev, [courseId]: previousPick ?? emptyPick() }));
+            setToast(null);
+          },
+        });
+      }
+    }
 
     if (!taking) {
       setInstructorFilter((prev) => {
@@ -544,6 +591,7 @@ export default function App() {
   }, []);
 
   const performClearAll = useCallback(() => {
+    const previousPicks = picksRef.current;
     setPicks({});
     setInstructorFilter({});
     setComboIndex(0);
@@ -551,7 +599,15 @@ export default function App() {
     setTypeFilter('All');
     setCourseFilter('all');
     setConfirmClearOpen(false);
-  }, []);
+    showToast({
+      message: 'Schedule cleared.',
+      actionLabel: 'Undo',
+      onAction: () => {
+        setPicks(previousPicks);
+        setToast(null);
+      },
+    });
+  }, [showToast]);
 
   const requestClearAll = useCallback(() => setConfirmClearOpen(true), []);
 
@@ -764,6 +820,18 @@ export default function App() {
     document
       .getElementById('best-schedule-heading')
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const focusCourseFromCommand = useCallback((courseId: string) => {
+    const el = document.getElementById(`course-card-${courseId}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => el?.classList.add('course-focus-flash'), 180);
+    window.setTimeout(() => el?.classList.remove('course-focus-flash'), 1100);
+  }, []);
+
+  const shareFromCommand = useCallback(() => {
+    const btn = document.querySelector<HTMLButtonElement>('[data-share-primary="true"]');
+    btn?.click();
   }, []);
 
   const copySummary = useCallback(() => {
@@ -1018,6 +1086,7 @@ export default function App() {
                     picks={picks}
                     disabled={takenCourses.length === 0}
                     className="btn btn-accent btn-tap"
+                    dataSharePrimary
                     extras={shareExtras}
                     summary={{
                       majorName: major.title,
@@ -1415,6 +1484,18 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <CommandPalette
+        open={commandOpen}
+        onClose={() => setCommandOpen(false)}
+        courses={courses}
+        onSelectCourse={focusCourseFromCommand}
+        onBestSchedule={scrollToBestSchedule}
+        onPreferences={() => setPrefsOpen(true)}
+        onShare={shareFromCommand}
+      />
+
+      <Toast toast={toast} onClose={() => setToast(null)} />
 
       {crossYearOpen && major && yearPlan && (
         <CrossYearBrowser
