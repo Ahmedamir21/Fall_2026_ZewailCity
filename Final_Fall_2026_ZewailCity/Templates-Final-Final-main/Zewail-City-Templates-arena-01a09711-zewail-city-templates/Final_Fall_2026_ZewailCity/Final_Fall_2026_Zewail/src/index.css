@@ -979,3 +979,43 @@ body {
     print-color-adjust: exact;
   }
 }
+
+
+/* Assistant proposals + non-blocking credit notices */
+.assistant-proposal{
+  border:1px solid var(--line);
+  background:var(--paper);
+  border-radius:14px;
+  margin:10px 0;
+  padding:11px;
+}
+.assistant-proposal-row{
+  border:1px solid var(--line-soft);
+  background:var(--surface);
+  border-radius:10px;
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 9px;
+  font-size:11.5px;
+  line-height:1.45;
+}
+.toast-icon{
+  width:20px;
+  height:20px;
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  background:var(--surface-2);
+  color:var(--ink);
+}
+.toast-info{border-color:var(--line)}
+.toast-info .toast-icon{color:var(--accent)}
+.toast-warning{border-color:var(--warn-line);background:var(--warn-bg)}
+.toast-warning .toast-icon{color:var(--warn)}
+.toast-danger{border-color:var(--warn);background:var(--warn-bg)}
+.toast-danger .toast-icon{background:var(--warn);color:#fff}
