@@ -25,6 +25,10 @@ export const SEMESTER_CONFIG = {
 
 export const TERM_LABEL = `${SEMESTER_CONFIG.term} ${SEMESTER_CONFIG.year}`;
 export const TERM_SESSION_LABEL = `${TERM_LABEL} · ${SEMESTER_CONFIG.session}`;
+export const TERM_SESSION_PAREN_LABEL = `${TERM_LABEL} (${SEMESTER_CONFIG.session})`;
 export const PRODUCT_TITLE = `${SEMESTER_CONFIG.institution} — ${TERM_LABEL} ${SEMESTER_CONFIG.plannerName}`;
 export const SHARE_TITLE = `My ${TERM_LABEL} schedule`;
 export const SHARE_TEXT = `Check out my ${SEMESTER_CONFIG.institution} ${TERM_LABEL} schedule.`;
+
+export const DOCUMENT_TITLE = PRODUCT_TITLE;
+export const DOCUMENT_DESCRIPTION = `${PRODUCT_TITLE}. Choose your major, pick courses and sections, catch time conflicts instantly, and share your finished schedule with a link.`;
