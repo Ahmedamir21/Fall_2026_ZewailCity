@@ -1,5 +1,5 @@
 import { COURSE_DATA_LAST_VERIFIED } from '../data/meta';
-import { PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
+import { CREATOR_CREDIT, PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
 
 const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Fall_2026_ZewailCity';
 
@@ -110,7 +110,7 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
                 filters, share links &amp; mobile upgrade. Built with React, Vite and Tailwind CSS.
               </p>
               <p className="mt-1 text-[13px]" style={{ color: 'var(--muted)' }}>
-                Directed by Ahmed Amir &amp; Youssef Taha (الريبات المشطشطين)
+                {CREATOR_CREDIT}
               </p>
             </div>
             <a
