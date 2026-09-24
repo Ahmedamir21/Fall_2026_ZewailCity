@@ -16,6 +16,7 @@ export function Timetable({
   bestLabel,
   variant = 'final',
   yearBadges,
+  highlightedCourseId,
 }: {
   events: TimetableEvent[];
   hiddenCount: number;
@@ -23,6 +24,8 @@ export function Timetable({
   variant?: 'final' | 'draft';
   /** "Year X" note per course id for cross-year additions — shown in the event tooltip. */
   yearBadges?: Record<string, string>;
+  /** Course currently hovered/focused in the picker; other timetable events dim slightly. */
+  highlightedCourseId?: string | null;
 }) {
   const starts = events.map((e) => e.meeting.start);
   const ends = events.map((e) => e.meeting.end);
@@ -144,8 +147,9 @@ export function Timetable({
                   return (
                     <div
                       key={uid(meeting)}
-                      className="event-card"
+                      className={`event-card ${highlightedCourseId && highlightedCourseId !== ev.course.id ? 'event-dimmed-by-course' : ''} ${highlightedCourseId === ev.course.id ? 'event-course-highlight' : ''}`}
                       data-clash={clash ? 'true' : 'false'}
+                      data-course-id={ev.course.id}
                       style={
                         clash
                           ? {
