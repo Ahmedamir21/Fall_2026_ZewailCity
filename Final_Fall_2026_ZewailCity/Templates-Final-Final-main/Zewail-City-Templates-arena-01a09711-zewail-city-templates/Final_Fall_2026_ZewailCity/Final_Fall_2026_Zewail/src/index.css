@@ -1019,3 +1019,31 @@ body {
 .toast-warning .toast-icon{color:var(--warn)}
 .toast-danger{border-color:var(--warn);background:var(--warn-bg)}
 .toast-danger .toast-icon{background:var(--warn);color:#fff}
+
+.assistant-proposal-stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+.assistant-proposal-stats span{
+  border:1px solid var(--line-soft);
+  background:var(--surface);
+  border-radius:10px;
+  padding:7px 8px;
+  min-width:0;
+}
+.assistant-proposal-stats strong{
+  display:block;
+  color:var(--muted-2);
+  font-size:9.5px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.assistant-proposal-stats small{
+  display:block;
+  margin-top:2px;
+  color:var(--ink);
+  font-size:11px;
+  font-weight:800;
+  line-height:1.3;
+}
