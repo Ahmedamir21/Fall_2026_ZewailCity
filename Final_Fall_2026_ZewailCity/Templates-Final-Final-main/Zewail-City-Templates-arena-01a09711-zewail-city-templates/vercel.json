@@ -15,10 +15,6 @@
   ],
   "routes": [
     {
-      "src": "/api/assistant",
-      "dest": "api/assistant.ts"
-    },
-    {
       "handle": "filesystem"
     },
     {
