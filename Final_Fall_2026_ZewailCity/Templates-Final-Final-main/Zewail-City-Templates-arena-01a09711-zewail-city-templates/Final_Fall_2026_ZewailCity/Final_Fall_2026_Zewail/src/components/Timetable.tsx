@@ -1,6 +1,7 @@
 import type { Course, Meeting } from '../types';
 import { DAYS, DAY_LABEL, formatRange, packLanes, to12h } from '../lib/time';
 import { uid } from '../lib/picks';
+import { TERM_SESSION_LABEL } from '../config/semester';
 
 export interface TimetableEvent {
   meeting: Meeting;
@@ -60,7 +61,7 @@ export function Timetable({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3" style={{ borderColor: 'var(--line)' }}>
         <div className="flex items-center gap-2">
           <h2 className="text-[13px] font-bold tracking-tight">Weekly Timetable</h2>
-          <span className="pill">Fall 2026 · Main Session</span>
+          <span className="pill">{TERM_SESSION_LABEL}</span>
           {variant === 'draft' && (
             <span className="pill" style={{ color: 'var(--warn)', borderColor: 'var(--warn-line)' }}>
               draft preview
