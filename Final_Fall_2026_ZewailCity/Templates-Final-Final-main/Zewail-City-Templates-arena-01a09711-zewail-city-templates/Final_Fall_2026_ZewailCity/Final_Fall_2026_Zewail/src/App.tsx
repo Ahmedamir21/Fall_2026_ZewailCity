@@ -53,6 +53,8 @@ import { AboutPage } from './components/AboutPage';
 import { BestSchedule } from './components/BestSchedule';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
+import { ScheduleAssistant } from './components/ScheduleAssistant';
+import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 
 function isAboutHash(): boolean {
   return typeof window !== 'undefined' && (window.location.hash ?? '').replace('#', '') === 'about';
@@ -827,6 +829,95 @@ export default function App() {
     [yearId, requireComplete, typeFilter, courseFilter, preferences, instructorFilter],
   );
 
+  const assistantContext = useMemo<Record<string, unknown>>(
+    () => ({
+      term: 'Fall 2026 · Main Session',
+      dataLastVerified: COURSE_DATA_LAST_VERIFIED,
+      major: major ? { id: major.id, title: major.title, subtitle: major.subtitle } : null,
+      year: yearPlan ? { id: yearPlan.id, label: yearPlan.label } : null,
+      creditLimit: effectiveCap,
+      totalSelectedCredits: totalCredits,
+      scheduleStats: {
+        sessions: metrics.sessions,
+        campusDays: metrics.days,
+        gapMinutes: metrics.gapMinutes,
+        earliest: metrics.earliest != null ? to12h(metrics.earliest) : null,
+        latest: metrics.latest != null ? to12h(metrics.latest) : null,
+      },
+      preferences,
+      currentIssues: issues.map((issue) => ({
+        course: issue.code,
+        kind: issue.kind,
+        text: issue.text,
+      })),
+      conflicts: overlapsFound.map((overlap) => ({
+        first: `${overlap.a.course.code} ${overlap.a.meeting.type} Sec ${overlap.a.meeting.sec}`,
+        second: `${overlap.b.course.code} ${overlap.b.meeting.type} Sec ${overlap.b.meeting.sec}`,
+        minutes: overlap.minutes,
+      })),
+      selectedCourses: detailEntries.map((entry) => ({
+        code: entry.course.code,
+        name: entry.course.name,
+        credits: entry.course.credits ?? null,
+        meetings: entry.pairing.meetings.map((meeting) => ({
+          type: meeting.type,
+          section: meeting.sec,
+          day: meeting.day,
+          time: formatRange(meeting.start, meeting.end),
+          room: meeting.room || 'Not published',
+          instructor:
+            entry.pairing.instructors?.[meeting.type] != null
+              ? entry.course.instructors[entry.pairing.instructors[meeting.type]!]?.name ?? entry.instructor.name
+              : entry.instructor.name,
+        })),
+      })),
+      availableCourses: courses.map((course) => ({
+        code: course.code,
+        name: course.name,
+        credits: course.credits ?? null,
+        noFixedSchedule: course.noFixedSchedule === true,
+        sections: course.instructors.flatMap((instructor) => [
+          ...instructor.lectures.map((meeting) => ({
+            type: meeting.type,
+            section: meeting.sec,
+            day: meeting.day,
+            time: formatRange(meeting.start, meeting.end),
+            room: meeting.room || 'Not published',
+            instructor: instructor.name,
+          })),
+          ...instructor.labs.map((meeting) => ({
+            type: meeting.type,
+            section: meeting.sec,
+            day: meeting.day,
+            time: formatRange(meeting.start, meeting.end),
+            room: meeting.room || 'Not published',
+            instructor: instructor.name,
+          })),
+          ...instructor.tutorials.map((meeting) => ({
+            type: meeting.type,
+            section: meeting.sec,
+            day: meeting.day,
+            time: formatRange(meeting.start, meeting.end),
+            room: meeting.room || 'Not published',
+            instructor: instructor.name,
+          })),
+        ]),
+      })),
+    }),
+    [
+      major,
+      yearPlan,
+      effectiveCap,
+      totalCredits,
+      metrics,
+      preferences,
+      issues,
+      overlapsFound,
+      detailEntries,
+      courses,
+    ],
+  );
+
   const scrollToBestSchedule = useCallback(() => {
     document
       .getElementById('best-schedule-heading')
@@ -1510,6 +1601,8 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {major && yearPlan && !showAbout && <ScheduleAssistant context={assistantContext} />}
 
       <CommandPalette
         open={commandOpen}
