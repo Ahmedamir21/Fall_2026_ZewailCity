@@ -89,7 +89,7 @@ export default async function handler(req: any, res: any) {
       parts: [{ text: m.text.slice(0, 1200) }],
     }));
 
-  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const model = 'gemini-3.5-flash-lite';
 
   try {
     const response = await fetch(
@@ -112,11 +112,31 @@ export default async function handler(req: any, res: any) {
 
     if (!response.ok) {
       console.error('Gemini API error', response.status, data?.error?.message || data);
-      return res.status(response.status === 429 ? 429 : 502).json({
-        error:
-          response.status === 429
-            ? 'The free AI quota is busy right now. Please try again shortly.'
-            : 'The assistant could not answer right now.',
+      const geminiMessage = String(data?.error?.message || '');
+      const status = response.status;
+
+      if (status === 429) {
+        return res.status(429).json({
+          error: 'The Gemini quota is busy right now. Please try again shortly.',
+        });
+      }
+
+      if (status === 401 || status === 403) {
+        return res.status(502).json({
+          error: 'Gemini rejected the API key or this project does not have access to the selected model.',
+        });
+      }
+
+      if (status === 400 || status === 404) {
+        return res.status(502).json({
+          error: 'Gemini rejected the model/request configuration. The server is using gemini-3.5-flash-lite.',
+        });
+      }
+
+      return res.status(502).json({
+        error: geminiMessage
+          ? `Gemini API error (${status}).`
+          : 'The assistant could not answer right now.',
       });
     }
 
