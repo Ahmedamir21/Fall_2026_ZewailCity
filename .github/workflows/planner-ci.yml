@@ -43,6 +43,5 @@ jobs:
       - name: UI tests
         run: npm run test:ui
 
-      - name: Legacy core harness
-        continue-on-error: true
+      - name: Core scheduler harness
         run: npm run test:harness
