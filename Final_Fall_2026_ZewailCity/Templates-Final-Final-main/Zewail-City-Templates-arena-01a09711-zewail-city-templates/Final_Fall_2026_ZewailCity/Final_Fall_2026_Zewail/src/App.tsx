@@ -54,6 +54,7 @@ import { BestSchedule } from './components/BestSchedule';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant } from './components/ScheduleAssistant';
+import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 
 function isAboutHash(): boolean {
@@ -1442,6 +1443,11 @@ export default function App() {
                       totalCredits,
                       conflictFree: takenCourses.length > 0 && noConflicts,
                     }}
+                  />
+
+                  <ShareScheduleImage
+                    events={allEvents}
+                    title={`${major.title} · ${yearPlan.label}`}
                   />
 
                   <button
