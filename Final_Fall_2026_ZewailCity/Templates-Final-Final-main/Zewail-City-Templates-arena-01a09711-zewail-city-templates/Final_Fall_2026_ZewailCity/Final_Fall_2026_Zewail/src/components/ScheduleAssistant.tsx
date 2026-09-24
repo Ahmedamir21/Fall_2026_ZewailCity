@@ -50,9 +50,29 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history: previous, context }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || 'The assistant could not answer right now.');
-      setMessages((m) => [...m, { role: 'assistant', text: data.text }]);
+
+      const raw = await response.text();
+      let data: { text?: string; error?: string } = {};
+
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          response.status === 404
+            ? 'The AI endpoint is not available on this deployment yet. Redeploy the latest branch and try again.'
+            : 'The assistant service returned an unexpected response.',
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'The assistant could not answer right now.');
+      }
+
+      if (!data.text) {
+        throw new Error('The assistant returned an empty response.');
+      }
+
+      setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The assistant could not answer right now.');
     } finally {
