@@ -58,7 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { TERM_LABEL, TERM_SESSION_LABEL } from './config/semester';
+import { TERM_SESSION_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -1648,6 +1648,7 @@ export default function App() {
               onPreferencesChange={setPreferences}
               onUse={useGeneratedSchedule}
               locks={plannerLocks}
+              assistantConstraints={assistantConstraints}
             />
 
             <div className="grid gap-3 xl:grid-cols-[minmax(340px,420px)_minmax(0,1fr)]">
