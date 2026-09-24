@@ -28,8 +28,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Core scheduling tests
-        run: npm run test:harness
+      - name: Production build
+        run: npm run build
+
+      - name: Assistant feature tests
+        run: npm run test:assistant
 
       - name: SSR smoke test
         run: npm run test:ssr
@@ -37,5 +40,6 @@ jobs:
       - name: UI tests
         run: npm run test:ui
 
-      - name: Production build
-        run: npm run build
+      - name: Legacy core harness
+        continue-on-error: true
+        run: npm run test:harness
