@@ -981,6 +981,96 @@ body {
 }
 
 
+.assistant-constraints{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:8px 12px 0;
+}
+.assistant-constraint-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  max-width:100%;
+  border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius:999px;
+  background:color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color:var(--ink);
+  padding:5px 8px 5px 10px;
+  font-size:10.5px;
+  font-weight:700;
+}
+.assistant-constraint-chip span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.assistant-constraint-chip button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font:inherit;
+  font-size:14px;
+  line-height:1;
+  padding:0;
+}
+.assistant-proposal-diff strong{
+  display:block;
+  font-size:11.5px;
+}
+.assistant-before-after{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+.assistant-before-after span{
+  min-width:0;
+  border:1px solid var(--line-soft);
+  border-radius:8px;
+  background:var(--paper);
+  padding:6px 7px;
+  font-size:10px;
+  line-height:1.35;
+}
+.assistant-before-after small{
+  display:block;
+  margin-bottom:2px;
+  color:var(--muted-2);
+  font-size:8px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.assistant-before-after b{
+  color:var(--accent);
+  font-size:12px;
+}
+.assistant-change-reason{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:10.5px;
+  line-height:1.4;
+}
+.assistant-conflict-details{
+  margin-top:7px;
+  border-top:1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+  padding-top:6px;
+}
+.assistant-conflict-details summary{
+  cursor:pointer;
+  font-weight:800;
+}
+.assistant-conflict-details strong,
+.assistant-conflict-details span{
+  display:block;
+  margin-top:4px;
+  font-size:10.5px;
+  line-height:1.4;
+}
+
 /* Assistant proposals + non-blocking credit notices */
 .assistant-proposal{
   border:1px solid var(--line);
