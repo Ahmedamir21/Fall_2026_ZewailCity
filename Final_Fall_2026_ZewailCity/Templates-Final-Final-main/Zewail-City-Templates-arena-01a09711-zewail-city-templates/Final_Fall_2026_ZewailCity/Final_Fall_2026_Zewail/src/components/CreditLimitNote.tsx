@@ -2,9 +2,9 @@ import type { CreditCap } from '../lib/appState';
 
 /**
  * Dismissible credit-limit note — an informational banner, never a data-collection step.
- * It explains the two active credit caps and offers buttons that set the active cap
- * SETTING (13/18). No GPA value is ever stored; dismissing without choosing leaves
- * the default cap at 18 credits.
+ * It explains the normal GPA-based caps plus the explicit Over Load option.
+ * The app stores only the selected cap (13/18/21), never the student's GPA.
+ * Dismissing without choosing leaves the planner's general 21-credit ceiling active.
  */
 export function CreditLimitNote({
   onChoose,
@@ -25,15 +25,19 @@ export function CreditLimitNote({
           Credit limits
         </p>
         <p className="mt-1 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-          Credit limits: below 2.00 GPA → up to 13 credits · GPA 2.00 or higher → up to 18 credits.
-          Pick the limit that applies to you — nothing is stored except the cap itself, on this device only.
+          Credit limits: below 2.00 GPA → up to 13 credits · GPA 2.00 or higher → up to 18 credits ·
+          Over Load → up to 21 credits. Pick the limit that applies to you — nothing is stored except the cap itself,
+          on this device only.
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           <button type="button" className="btn btn-tap px-2.5 py-1.5 text-[11px]" onClick={() => onChoose(13)}>
             Below 2.00 · 13 cr
           </button>
           <button type="button" className="btn btn-tap px-2.5 py-1.5 text-[11px]" onClick={() => onChoose(18)}>
-            2.00+ · 18 cr
+            GPA 2.00+ · 18 cr
+          </button>
+          <button type="button" className="btn btn-tap px-2.5 py-1.5 text-[11px]" onClick={() => onChoose(21)}>
+            Over Load · 21 cr
           </button>
         </div>
       </div>
@@ -42,7 +46,7 @@ export function CreditLimitNote({
         className="btn btn-tap flex-none px-2.5 py-1.5 text-[11px]"
         onClick={onDismiss}
         aria-label="Dismiss credit limit note"
-        title="Dismiss — the default 18-credit limit stays active"
+        title="Dismiss — the planner's 21-credit ceiling stays active"
       >
         ✕
       </button>
