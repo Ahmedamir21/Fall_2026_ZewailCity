@@ -13,6 +13,7 @@ import {
   type PickState,
 } from '../lib/picks';
 import type { SchedulePreferences } from '../lib/preferences';
+import { isComponentLocked, isCourseLocked, type PlannerLocks } from '../lib/assistantControls';
 
 interface Props {
   courses: Course[];
@@ -34,6 +35,9 @@ interface Props {
   shake?: { courseId: string; nonce: number } | null;
   /** Desktop hover/focus bridge to the timetable. */
   onHoverCourse?: (courseId: string | null) => void;
+  locks: PlannerLocks;
+  onToggleCourseLock: (courseId: string) => void;
+  onToggleComponentLock: (courseId: string, kind: MeetingType) => void;
 }
 
 const KIND_ORDER: MeetingType[] = ['Lecture', 'Lab', 'Tutorial'];
@@ -53,6 +57,9 @@ export function CoursePicker({
   capNotice,
   shake,
   onHoverCourse,
+  locks,
+  onToggleCourseLock,
+  onToggleComponentLock,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [schOpen, setSchOpen] = useState(true);
@@ -91,6 +98,9 @@ export function CoursePicker({
       yearBadge={yearBadges?.[course.id]}
       shakeNonce={shake?.courseId === course.id ? shake.nonce : null}
       onHoverCourse={onHoverCourse}
+      locks={locks}
+      onToggleCourseLock={() => onToggleCourseLock(course.id)}
+      onToggleComponentLock={(kind) => onToggleComponentLock(course.id, kind)}
     />
   );
 
@@ -263,6 +273,9 @@ function CourseCard({
   yearBadge,
   shakeNonce,
   onHoverCourse,
+  locks,
+  onToggleCourseLock,
+  onToggleComponentLock,
 }: {
   course: Course;
   pick: Pick | undefined;
@@ -279,8 +292,12 @@ function CourseCard({
   /** Non-null triggers the rejected-addition shake; changes retrigger it. */
   shakeNonce?: number | null;
   onHoverCourse?: (courseId: string | null) => void;
+  locks: PlannerLocks;
+  onToggleCourseLock: () => void;
+  onToggleComponentLock: (kind: MeetingType) => void;
 }) {
   const taking = !!pick;
+  const courseLocked = isCourseLocked(locks, course.id);
   // No published schedule at all (e.g. Senior Project): tickable and credit-counting, but
   // there is nothing to pick — no option groups, no "still to decide", no timetable entry.
   const noSchedule = course.noFixedSchedule === true;
@@ -399,14 +416,26 @@ function CourseCard({
           </p>
         </label>
         {taking && (
-          <button
-            type="button"
-            className="btn btn-tap flex-none px-2.5 py-1.5 text-[11px]"
-            onClick={onClearOne}
-            title="Clear this course's time choices"
-          >
-            Clear
-          </button>
+          <div className="flex flex-none items-center gap-1.5">
+            <button
+              type="button"
+              className="btn btn-tap px-2.5 py-1.5 text-[11px]"
+              onClick={onToggleCourseLock}
+              aria-pressed={courseLocked}
+              title={courseLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
+              style={courseLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
+            >
+              {courseLocked ? '🔒 Locked' : '🔓 Lock'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-tap px-2.5 py-1.5 text-[11px]"
+              onClick={onClearOne}
+              title="Clear this course's time choices"
+            >
+              Clear
+            </button>
+          </div>
         )}
       </header>
 
@@ -502,6 +531,8 @@ function CourseCard({
                           groupLabel={instructor?.name}
                           onSelect={() => choose(kind, option.key, option.instructorIdx)}
                           showReasons={isOptionDisabled(option)}
+                          locked={isComponentLocked(locks, course.id, kind)}
+                          onToggleLock={() => onToggleComponentLock(kind)}
                         />
                       ))}
                       {expanded &&
@@ -513,6 +544,8 @@ function CourseCard({
                             groupLabel={instructor?.name}
                             onSelect={() => choose(kind, option.key, option.instructorIdx)}
                             showReasons
+                            locked={isComponentLocked(locks, course.id, kind)}
+                            onToggleLock={() => onToggleComponentLock(kind)}
                           />
                         ))}
                     </div>
@@ -577,12 +610,16 @@ function OptionRow({
   groupLabel,
   onSelect,
   showReasons,
+  locked,
+  onToggleLock,
 }: {
   option: OptionState;
   course: Course;
   groupLabel?: string;
   onSelect: () => void;
   showReasons?: boolean;
+  locked?: boolean;
+  onToggleLock?: () => void;
 }) {
   const active = option.picked;
   const disabled = isOptionDisabled(option);
@@ -590,7 +627,7 @@ function OptionRow({
   const kind = option.meeting.type;
 
   return (
-    <label
+    <div
       title={reasons.length ? `Hidden because:\n${reasons.map((r) => `• ${r}`).join('\n')}` : undefined}
       className="tap-row flex items-start gap-2 rounded-lg px-2 py-2 text-[12px] font-semibold transition-colors sm:text-[11.5px]"
       style={{
@@ -598,44 +635,52 @@ function OptionRow({
         border: `1px solid ${active ? `var(--c${course.c})` : disabled || option.hiddenByInstructor ? 'var(--warn-line)' : 'transparent'}`,
         color: active ? `var(--c${course.c})` : disabled ? 'var(--muted-2)' : 'var(--ink)',
         opacity: disabled ? 0.65 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
       }}
     >
-      <input
-        type="radio"
-        name={`${course.id}-${kind}`}
-        className="tap-radio mt-0.5 accent-[var(--accent)]"
-        checked={active}
-        disabled={disabled}
-        onChange={() => !disabled && onSelect()}
-      />
-      <span className="min-w-0 flex-1">
-        <span className="mono block" style={{ textDecoration: disabled ? 'line-through' : 'none' }}>
-          {DAY_LABEL[option.meeting.day].slice(0, 3)} · {formatRange(option.meeting.start, option.meeting.end)}
-        </span>
-        <span className="block text-[11px] font-medium sm:text-[10.5px]" style={{ color: reasons.length && !option.picked ? 'var(--warn)' : 'var(--muted)' }}>
-          Sec {option.meeting.sec} · {option.meeting.room} · {option.instructor.name}
-        </span>
-        {showReasons && reasons.length > 0 && (
-          <span className="mt-1 block space-y-0.5">
-            {reasons.map((r) => (
-              <span key={r} className="block text-[10.5px] font-semibold" style={{ color: 'var(--warn)' }}>
-                • {r}
-              </span>
-            ))}
+      <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2" style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}>
+        <input
+          type="radio"
+          name={`${course.id}-${kind}`}
+          className="tap-radio mt-0.5 accent-[var(--accent)]"
+          checked={active}
+          disabled={disabled}
+          onChange={() => !disabled && onSelect()}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="mono block" style={{ textDecoration: disabled ? 'line-through' : 'none' }}>
+            {DAY_LABEL[option.meeting.day].slice(0, 3)} · {formatRange(option.meeting.start, option.meeting.end)}
           </span>
-        )}
-        {!disabled && option.softNotes.length > 0 && (
-          <span className="mt-1 block space-y-0.5">
-            {option.softNotes.map((r) => (
-              <span key={r} className="block text-[10.5px] font-semibold" style={{ color: 'var(--accent)' }}>
-                ♢ {r}
-              </span>
-            ))}
+          <span className="block text-[11px] font-medium sm:text-[10.5px]" style={{ color: reasons.length && !option.picked ? 'var(--warn)' : 'var(--muted)' }}>
+            Sec {option.meeting.sec} · {option.meeting.room} · {option.instructor.name}
           </span>
-        )}
-      </span>
-    </label>
+          {showReasons && reasons.length > 0 && (
+            <span className="mt-1 block space-y-0.5">
+              {reasons.map((reason) => (
+                <span key={reason} className="block text-[10px] font-medium leading-snug" style={{ color: 'var(--warn)' }}>
+                  {reason}
+                </span>
+              ))}
+            </span>
+          )}
+        </span>
+      </label>
+      {active && onToggleLock && (
+        <button
+          type="button"
+          className="btn-tap flex-none rounded-lg px-2 py-1 text-[10px] font-bold"
+          onClick={onToggleLock}
+          aria-pressed={Boolean(locked)}
+          title={locked ? 'Unlock this section for AI and Best Schedule' : 'Keep this section unchanged by AI and Best Schedule'}
+          style={{
+            border: `1px solid ${locked ? 'var(--accent)' : 'var(--line)'}`,
+            color: locked ? 'var(--accent)' : 'var(--muted)',
+            background: 'var(--surface)',
+          }}
+        >
+          {locked ? '🔒' : '🔓'}
+        </button>
+      )}
+    </div>
   );
 }
 
