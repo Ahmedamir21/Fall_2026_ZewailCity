@@ -58,7 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL } from './config/semester';
+import { DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -107,6 +107,12 @@ function trimFilterToMajor(
 }
 
 export default function App() {
+  useEffect(() => {
+    document.title = DOCUMENT_TITLE;
+    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (description) description.content = DOCUMENT_DESCRIPTION;
+  }, []);
+
   const [theme, setTheme] = useTheme();
 
   // Both sources are read exactly once. URL state always wins over Local Storage, so opening
@@ -1320,7 +1326,7 @@ export default function App() {
 
   const copySummary = useCallback(() => {
     const lines: string[] = [
-      `My Zewail City schedule — ${TERM_SESSION_LABEL}`,
+      `My Zewail City schedule — ${TERM_SESSION_PAREN_LABEL}`,
       '--------------------------------',
     ];
 
