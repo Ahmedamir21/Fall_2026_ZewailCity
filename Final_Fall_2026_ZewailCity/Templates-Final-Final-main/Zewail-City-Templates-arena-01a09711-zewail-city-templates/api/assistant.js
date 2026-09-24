@@ -10,6 +10,13 @@ function clientKey(req) {
 
 function rateLimited(key) {
   const now = Date.now();
+
+  if (buckets.size > 2000) {
+    for (const [bucketKey, value] of buckets) {
+      if (now - value.startedAt > WINDOW_MS) buckets.delete(bucketKey);
+    }
+  }
+
   const current = buckets.get(key);
   if (!current || now - current.startedAt > WINDOW_MS) {
     buckets.set(key, { startedAt: now, count: 1 });
@@ -39,7 +46,13 @@ module.exports = async function handler(req, res) {
     return res.status(429).json({ error: 'Too many messages right now. Please try again in a minute.' });
   }
 
-  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  let body = {};
+  try {
+    body = req.body && typeof req.body === 'object' ? req.body : {};
+  } catch {
+    return res.status(400).json({ error: 'Invalid JSON body.' });
+  }
+
   const message = typeof body.message === 'string' ? body.message.trim() : '';
   const context = body.context && typeof body.context === 'object' ? body.context : {};
   const history = Array.isArray(body.history) ? body.history.slice(-6) : [];
