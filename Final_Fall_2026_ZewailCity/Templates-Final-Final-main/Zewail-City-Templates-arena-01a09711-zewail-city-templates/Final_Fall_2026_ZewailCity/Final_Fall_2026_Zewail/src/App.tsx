@@ -20,6 +20,7 @@ import {
   draftMeetings,
   draftOverlaps,
   emptyPick,
+  meetingOption,
   mergeHiddenSummaries,
   optionStates,
   optionsFor,
@@ -915,7 +916,11 @@ export default function App() {
       const nextOverlaps = draftOverlaps(nextDraft);
 
       if (nextOverlaps.length > 0) {
-        return { ok: false, message: 'This proposal would create a timetable conflict, so it cannot be applied.' };
+        const first = nextOverlaps[0];
+        return {
+          ok: false,
+          message: `This proposal would create a conflict between ${first.a.course.code} ${first.a.meeting.type} Sec ${first.a.meeting.sec} and ${first.b.course.code} ${first.b.meeting.type} Sec ${first.b.meeting.sec}.`,
+        };
       }
 
       return {
@@ -1016,12 +1021,7 @@ export default function App() {
           day: meeting.day,
           time: formatRange(meeting.start, meeting.end),
           room: meeting.room || 'Not published',
-          instructor: (() => {
-            const instructorIndex = entry.pairing.instructors?.[meeting.type];
-            return instructorIndex != null
-              ? entry.course.instructors[instructorIndex]?.name ?? entry.instructor.name
-              : entry.instructor.name;
-          })(),
+          instructor: meetingOption(entry.course, meeting)?.instructor.name ?? entry.instructor.name,
         })),
       })),
       availableCourses: courses.map((course) => ({
