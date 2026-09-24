@@ -491,7 +491,6 @@ export default function App() {
   const selectMajor = useCallback((id: string) => {
     setMajorId(id);
     setPicks({});
-    setPlannerLocks({ courseIds: [], components: {} });
     setInstructorFilter({});
     setCourseFilter('all');
     setTypeFilter('All');
@@ -959,7 +958,7 @@ export default function App() {
   const evaluateAssistantProposal = useCallback(
     (proposal: AssistantProposal):
       | { ok: true; next: PickState; nextMetrics: ComboMetrics; nextCredits: number }
-      | { ok: false; message: string } => {
+      | { ok: false; message: string; conflict?: { title: string; details: string[] } } => {
       if (!major || !proposal.changes.length) {
         return { ok: false, message: 'There are no valid changes to apply.' };
       }
@@ -1022,9 +1021,18 @@ export default function App() {
 
       if (nextOverlaps.length > 0) {
         const first = nextOverlaps[0];
+        const start = Math.max(first.a.meeting.start, first.b.meeting.start);
+        const end = Math.min(first.a.meeting.end, first.b.meeting.end);
         return {
           ok: false,
           message: `This proposal would create a conflict between ${first.a.course.code} ${first.a.meeting.type} Sec ${first.a.meeting.sec} and ${first.b.course.code} ${first.b.meeting.type} Sec ${first.b.meeting.sec}.`,
+          conflict: {
+            title: `${first.a.meeting.day} conflict · ${formatRange(start, end)} overlap`,
+            details: [
+              `${first.a.course.code} · ${first.a.meeting.type} Sec ${first.a.meeting.sec} · ${formatRange(first.a.meeting.start, first.a.meeting.end)} · ${first.a.meeting.room || 'Room not published'}`,
+              `${first.b.course.code} · ${first.b.meeting.type} Sec ${first.b.meeting.sec} · ${formatRange(first.b.meeting.start, first.b.meeting.end)} · ${first.b.meeting.room || 'Room not published'}`,
+            ],
+          },
         };
       }
 
@@ -1040,11 +1048,50 @@ export default function App() {
 
   const previewAssistantProposal = useCallback(
     (proposal: AssistantProposal): AssistantProposalPreview => {
+      const current = picksRef.current;
+      const describeMeeting = (course: Course, kind: MeetingType, key: string | null | undefined) => {
+        if (!key) return 'Not selected';
+        const option = optionsFor(course, kind).find((item) => item.key === key);
+        if (!option) return 'Section no longer available';
+        const m = option.meeting;
+        return `Sec ${m.sec} · ${m.day} ${formatRange(m.start, m.end)} · ${m.room || 'Room not published'} · ${option.instructor.name}`;
+      };
+
+      const changes = proposal.changes.map((change) => {
+        const course = COURSE_BY_ID[change.courseId];
+        const code = course?.code ?? change.courseId;
+        if (!course) return { title: change.label || code, reason: change.reason };
+
+        if (change.type === 'set_meeting') {
+          return {
+            title: change.label || `${code} · ${change.meetingType}`,
+            before: describeMeeting(course, change.meetingType, current[change.courseId]?.[change.meetingType]),
+            after: describeMeeting(course, change.meetingType, change.meetingId),
+            reason: change.reason,
+          };
+        }
+        if (change.type === 'add_course') {
+          return {
+            title: change.label || `Add ${code}`,
+            before: current[change.courseId] ? 'Already selected' : 'Not selected',
+            after: `${code} added · ${course.credits ?? 0} credits`,
+            reason: change.reason,
+          };
+        }
+        return {
+          title: change.label || `Remove ${code}`,
+          before: current[change.courseId] ? `${code} selected` : 'Not selected',
+          after: 'Removed from planner',
+          reason: change.reason,
+        };
+      });
+
       const result = evaluateAssistantProposal(proposal);
-      if (!result.ok) return result;
+      if (!result.ok) return { ...result, changes };
 
       return {
         ok: true,
+        changes,
         stats: {
           campusDays: `${metrics.days} → ${result.nextMetrics.days}`,
           gaps: `${formatDuration(metrics.gapMinutes)} → ${formatDuration(result.nextMetrics.gapMinutes)}`,
