@@ -2,7 +2,7 @@ name: Planner CI
 
 on:
   push:
-    branches: [add-year-1-courses, semester-ready-refactor]
+    branches: [add-year-1-courses, semester-ready-refactor, 'internal-*']
   pull_request:
     branches: [add-year-1-courses]
   workflow_dispatch:
@@ -31,8 +31,14 @@ jobs:
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
 
+      - name: TypeScript check
+        run: npm run typecheck
+
       - name: Production build
         run: npm run build
+
+      - name: Platform feature tests
+        run: npm run test:platform
 
       - name: Data integrity tests
         run: npm run test:data

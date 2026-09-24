@@ -20,6 +20,8 @@ export const SEMESTER_CONFIG = {
   session: 'Main Session',
   version: '2.1',
   dataLastVerified: '2026-09-24',
+  calendarStartDate: '2026-09-20',
+  calendarEndDate: '2026-12-31',
   publicHostLabel: 'fall-2026-zewail-city.vercel.app',
 } as const;
 

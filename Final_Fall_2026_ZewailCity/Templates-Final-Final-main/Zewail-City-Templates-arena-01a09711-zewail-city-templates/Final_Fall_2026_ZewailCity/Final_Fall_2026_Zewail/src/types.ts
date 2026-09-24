@@ -1,4 +1,3 @@
-```ts
 export type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu';
 
 /** 'Lecture' | 'Lab' | 'Tutorial' */
@@ -108,4 +107,3 @@ export interface GenerationResult {
    */
   pairingsByCourse: Record<string, Pairing[]>;
 }
-```

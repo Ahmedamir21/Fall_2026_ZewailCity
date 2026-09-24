@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:harness": "esbuild tests/harness.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/harness.mjs --log-level=error && node node_modules/.tmp/harness.mjs",
+    "test:platform": "esbuild tests/platform-features.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/platform-features.mjs --log-level=error && node node_modules/.tmp/platform-features.mjs",
     "test:data": "esbuild tests/data-integrity.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/data-integrity.mjs --log-level=error && node node_modules/.tmp/data-integrity.mjs",
     "test:assistant": "esbuild tests/assistant-features.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/assistant-features.mjs --log-level=error && node node_modules/.tmp/assistant-features.mjs",
     "test:ssr": "esbuild tests/ssr.tsx --bundle --platform=node --format=cjs --outfile=node_modules/.tmp/ssr.cjs --jsx=automatic --log-level=error && node node_modules/.tmp/ssr.cjs",
