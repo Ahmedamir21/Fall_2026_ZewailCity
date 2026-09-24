@@ -47,6 +47,10 @@ export function CreditsDashboard({
   onChangeLimit,
 }: Props) {
   const creditsLeft = Math.max(0, creditCap - totalCredits);
+  const creditTone =
+    totalCredits >= 18 ? 'var(--warn)' :
+    totalCredits >= 17 ? 'var(--accent)' :
+    'var(--ink)';
   const tiles = [
     {
       label: 'Selected Courses',
@@ -61,8 +65,8 @@ export function CreditsDashboard({
       label: 'Total Credits',
       value: (
         <>
-          {totalCredits}{' '}
-          <span className="text-[12px] font-semibold" style={{ color: 'var(--muted-2)' }}>
+          <span style={{ color: creditTone }}>{totalCredits}</span>{' '}
+          <span className="text-[12px] font-semibold" style={{ color: totalCredits >= 18 ? 'var(--warn)' : 'var(--muted-2)' }}>
             / {creditCap} cr
           </span>
         </>
