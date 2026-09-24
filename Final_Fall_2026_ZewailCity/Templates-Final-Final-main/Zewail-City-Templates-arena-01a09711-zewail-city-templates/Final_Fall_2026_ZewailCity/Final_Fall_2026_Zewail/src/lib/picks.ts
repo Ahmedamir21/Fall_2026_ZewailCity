@@ -63,6 +63,11 @@ export function findPicked(course: Course, key: string | null | undefined): Opti
   return null;
 }
 
+/** Resolve a concrete meeting back to the exact published option/instructor that owns it. */
+export function meetingOption(course: Course, meeting: Meeting): Option | null {
+  return optionsFor(course, meeting.type).find((o) => o.key === uid(meeting)) ?? null;
+}
+
 export interface DraftMeeting {
   courseId: string;
   course: Course;
