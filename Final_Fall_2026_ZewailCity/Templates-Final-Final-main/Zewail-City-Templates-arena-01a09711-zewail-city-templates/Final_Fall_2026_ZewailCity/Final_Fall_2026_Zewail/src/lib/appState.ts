@@ -18,7 +18,7 @@ const STORAGE_KEY = 'zw-app-state-v2';
 const KIND_ORDER: MeetingType[] = ['Lecture', 'Lab', 'Tutorial'];
 
 /** The only credit caps the app recognises — anything else stored is dropped. */
-export const VALID_CREDIT_CAPS = [13, 18, 21] as const;
+export const VALID_CREDIT_CAPS = [13, 18] as const;
 export type CreditCap = (typeof VALID_CREDIT_CAPS)[number];
 
 /** True only when `value` is one of the known cap settings. */
@@ -26,9 +26,9 @@ export function isValidCreditCap(value: unknown): value is CreditCap {
   return typeof value === 'number' && (VALID_CREDIT_CAPS as readonly number[]).includes(value);
 }
 
-/** The credit cap in force right now: the chosen tier, or the 21-credit absolute ceiling. */
+/** The credit cap in force right now: the chosen tier, or the 18-credit default ceiling. */
 export function effectiveCreditCap(cap: CreditCap | null | undefined): number {
-  return Math.min(cap ?? 21, 21);
+  return Math.min(cap ?? 18, 18);
 }
 
 /** Total credits of every currently registered (ticked) course; unset credits count as 0. */
@@ -55,8 +55,8 @@ export interface PersistedState {
    */
   yearId: string | null;
   /**
-   * Active credit-cap SETTING (a plain integer, 13/18/21) — null when never chosen.
-   * The effective cap is always `creditCap ?? 21`; nothing about the user is stored.
+   * Active credit-cap SETTING (a plain integer, 13/18) — null when never chosen.
+   * The effective cap is always `creditCap ?? 18`; nothing about the user is stored.
    */
   creditCap: CreditCap | null;
   /** courseId -> instructor index of the active per-course FILTER pill (view state; picks are independent). */
