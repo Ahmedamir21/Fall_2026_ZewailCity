@@ -58,7 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
+import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -1915,7 +1915,7 @@ export default function App() {
           className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.14em]"
           style={{ color: 'var(--accent)' }}
         >
-          Directed by Ahmed Amir &amp; Youssef Taha (الريبات المشطشطين)
+          {CREATOR_CREDIT}
         </p>
       </div>
 
