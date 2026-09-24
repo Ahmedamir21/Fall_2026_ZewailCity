@@ -35,8 +35,16 @@ export function lockedPickForCourse(
   const pick = picks[courseId];
   if (!pick) return {};
   const out: Partial<Pick> = {};
+  const courseLocked = isCourseLocked(locks, courseId);
+
   (['Lecture', 'Lab', 'Tutorial'] as MeetingType[]).forEach((kind) => {
-    if (isComponentLocked(locks, courseId, kind) && pick[kind]) out[kind] = pick[kind];
+    if (courseLocked) {
+      // A course lock means exactly "leave this course as-is", including
+      // components that are intentionally still empty.
+      out[kind] = pick[kind] ?? null;
+      return;
+    }
+    if (isComponentLocked(locks, courseId, kind)) out[kind] = pick[kind] ?? null;
   });
   return out;
 }
@@ -49,8 +57,10 @@ export function pairingMatchesLockedPick(pairing: Pairing, locked: Partial<Pick>
   };
 
   return (['Lecture', 'Lab', 'Tutorial'] as MeetingType[]).every((kind) => {
-    const expected = locked[kind];
-    return expected == null || actual[kind] === expected;
+    // Presence of the property is meaningful: null means "keep this
+    // component empty", while an absent property means "not locked".
+    if (!Object.prototype.hasOwnProperty.call(locked, kind)) return true;
+    return actual[kind] === (locked[kind] ?? null);
   });
 }
 
