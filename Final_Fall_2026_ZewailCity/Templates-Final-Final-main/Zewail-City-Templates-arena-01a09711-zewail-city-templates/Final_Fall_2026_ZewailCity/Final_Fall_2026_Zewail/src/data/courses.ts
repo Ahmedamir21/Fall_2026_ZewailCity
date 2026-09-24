@@ -90,6 +90,7 @@ const csai201: Course = {
 
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('13', 'Sun', 'D', 'S043-E'),
@@ -137,6 +138,7 @@ const csai202: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('09', 'Tue', 'C', 'G012-E'),
@@ -227,6 +229,7 @@ const math105: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [
         lec('04', 'Wed', 'D', 'G006-B'),
       ],
@@ -332,6 +335,7 @@ const csai203: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [lec('03', 'Sun', 'D', 'G033B')],
       labs: [
         lab('09', 'Tue', 'C', 'G013-E'),
@@ -404,6 +408,7 @@ const csai301: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('05', 'Sun', 'D', ''),
@@ -594,6 +599,7 @@ const math205: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [],
       tutorials: [
@@ -761,6 +767,7 @@ const sw252: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('02', 'Tue', 'D', 'G015-E'),
@@ -790,6 +797,7 @@ const sw302: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('02', 'Wed', 'E', 'G018-E'),
@@ -819,6 +827,7 @@ const swapd301: Course = {
     },
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [],
       labs: [
         lab('02', 'Wed', 'A', 'G018-E'),
@@ -930,6 +939,7 @@ const sw402: Course = {
   instructors: [
     {
       name: 'Instructor Not Assigned',
+      unassigned: true,
       lectures: [
         lec('01', 'Tue', 'D', 'F006-D'),
       ],
