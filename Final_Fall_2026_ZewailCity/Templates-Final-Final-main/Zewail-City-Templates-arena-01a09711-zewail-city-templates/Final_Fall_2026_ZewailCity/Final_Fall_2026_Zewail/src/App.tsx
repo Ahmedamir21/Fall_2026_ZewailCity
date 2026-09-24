@@ -194,6 +194,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [showAbout, setShowAbout] = useState(isAboutHash);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
 
   /** Lifted so the Credits Dashboard and the mobile action bar can open the preferences modal. */
   const [prefsOpen, setPrefsOpen] = useState(false);
@@ -1206,13 +1207,15 @@ export default function App() {
                         message="Pick at least one lecture or lab/tutorial time from the cards on the left and it will appear here instantly."
                       />
                     ) : (
-                      <Timetable
-                        events={visibleEvents}
-                        hiddenCount={allEvents.length - visibleEvents.length}
-                        bestLabel={bestLabel}
-                        variant={noConflicts ? 'final' : 'draft'}
-                        yearBadges={yearBadges}
-                      />
+                      <div className="xl:sticky xl:top-3 xl:z-20">
+                        <Timetable
+                          events={visibleEvents}
+                          hiddenCount={allEvents.length - visibleEvents.length}
+                          bestLabel={bestLabel}
+                          variant={noConflicts ? 'final' : 'draft'}
+                          yearBadges={yearBadges}
+                        />
+                      </div>
                     )}
 
                     {allEvents.length > 0 && (
@@ -1344,7 +1347,16 @@ export default function App() {
             className="btn btn-accent btn-tap flex-1"
             onClick={scrollToBestSchedule}
           >
-            ✦ Best Schedule
+            ✦ Best
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-tap flex-1"
+            onClick={() => setMobileScheduleOpen(true)}
+            disabled={allEvents.length === 0}
+          >
+            🗓 Schedule
           </button>
 
           <button
@@ -1354,22 +1366,53 @@ export default function App() {
           >
             ⚙ Preferences
           </button>
-
-          <ShareSchedule
-            majorId={majorId!}
-            courses={courses}
-            picks={picks}
-            className="btn btn-tap flex-1"
-            label="🔗 Share"
-            extras={shareExtras}
-            summary={{
-              majorName: major.title,
-              selectedCount: takenCourses.length,
-              totalCredits,
-              conflictFree: takenCourses.length > 0 && noConflicts,
-            }}
-          />
         </nav>
+      )}
+
+      {mobileScheduleOpen && (
+        <div
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-black/55 p-0 sm:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Current schedule"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setMobileScheduleOpen(false);
+          }}
+        >
+          <div className="panel max-h-[88vh] w-full overflow-y-auto rounded-b-none rounded-t-2xl p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-[14px] font-bold">Current Schedule</h2>
+                <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
+                  Updates instantly as you change sections.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-tap px-3"
+                onClick={() => setMobileScheduleOpen(false)}
+                aria-label="Close current schedule"
+              >
+                ✕
+              </button>
+            </div>
+            {allEvents.length === 0 ? (
+              <EmptyState
+                icon="🗓"
+                title="No times selected yet."
+                message="Choose a lecture, lab or tutorial and it will appear here."
+              />
+            ) : (
+              <Timetable
+                events={visibleEvents}
+                hiddenCount={allEvents.length - visibleEvents.length}
+                bestLabel={bestLabel}
+                variant={noConflicts ? 'final' : 'draft'}
+                yearBadges={yearBadges}
+              />
+            )}
+          </div>
+        </div>
       )}
 
       {crossYearOpen && major && yearPlan && (
