@@ -213,7 +213,13 @@ function scoreCandidate(meetings: Meeting[], metrics: ComboMetrics, prefs: Sched
     maxHoursScore = 1 - maxHoursViolationDays.length / totalDaysUsed;
   }
 
-  const w = { gap: 0.12, free: 0.12, finish: 0, start: 0, prefDays: 0, keepFree: 0, range: 0, edge: 0, maxHours: 0 };
+  let campusDaysScore = 1;
+  if (prefs.preferredCampusDays != null) {
+    // Exact match = 1.0; each day away reduces the score smoothly.
+    campusDaysScore = clamp01(1 - Math.abs(usedDays.size - prefs.preferredCampusDays) / Math.max(1, DAYS.length - 1));
+  }
+
+  const w = { gap: 0.12, free: 0.12, finish: 0, start: 0, prefDays: 0, keepFree: 0, range: 0, edge: 0, maxHours: 0, campusDays: 0 };
   if (prefs.goals.minimizeGaps) w.gap += 0.22;
   if (prefs.goals.maximizeFreeDays) w.free += 0.22;
   if (prefs.goals.earliestFinish) w.finish = 0.22;
@@ -223,6 +229,7 @@ function scoreCandidate(meetings: Meeting[], metrics: ComboMetrics, prefs: Sched
   if (prefs.preferredStart != null || prefs.preferredEnd != null) w.range += 0.14;
   if ((prefs.noBefore != null && !prefs.noBeforeStrict) || (prefs.noAfter != null && !prefs.noAfterStrict)) w.edge += 0.1;
   if (prefs.maxHoursPerDay != null) w.maxHours = 0.22;
+  if (prefs.preferredCampusDays != null) w.campusDays = 0.32;
 
   const totalWeight = Object.values(w).reduce((s, v) => s + v, 0) || 1;
   const weightedSum =
@@ -234,7 +241,8 @@ function scoreCandidate(meetings: Meeting[], metrics: ComboMetrics, prefs: Sched
     w.keepFree * keepFreeScore +
     w.range * timeRangeScore +
     w.edge * ((noBeforeScore + noAfterScore) / 2) +
-    w.maxHours * maxHoursScore;
+    w.maxHours * maxHoursScore +
+    w.campusDays * campusDaysScore;
 
   return {
     percent: Math.round(clamp01(weightedSum / totalWeight) * 100),
@@ -270,6 +278,9 @@ function hardConstraintLabels(prefs: SchedulePreferences): { key: string; label:
   if (prefs.preferredDaysHard && prefs.preferredDays.length) out.push({ key: 'prefDays', label: `classes only on ${prefs.preferredDays.join(', ')}` });
   if (prefs.keepFreeDaysHard && prefs.keepFreeDays.length) out.push({ key: 'keepFree', label: `keeping ${prefs.keepFreeDays.join(', ')} completely free` });
   if (prefs.maxHoursHard && prefs.maxHoursPerDay != null) out.push({ key: 'maxHours', label: `at most ${prefs.maxHoursPerDay} hours per day` });
+  if (prefs.campusDaysHard && prefs.preferredCampusDays != null) {
+    out.push({ key: 'campusDays', label: `at most ${prefs.preferredCampusDays} campus days per week` });
+  }
   return out;
 }
 
@@ -369,12 +380,19 @@ export function generateBestSchedules(courses: Course[], prefs: SchedulePreferen
   const busy = new Map<Day, Meeting[]>();
   const dayMinutes = new Map<Day, number>();
   const hardLimitMin = prefs.maxHoursHard && prefs.maxHoursPerDay != null ? prefs.maxHoursPerDay * 60 : null;
+  const hardCampusDays = prefs.campusDaysHard ? prefs.preferredCampusDays : null;
 
   const fits = (meetings: Meeting[]) => {
+    const newlyUsed = new Set<Day>();
     for (const mt of meetings) {
       const arr = busy.get(mt.day);
       if (arr && arr.some((b) => overlaps(b, mt))) return false;
       if (hardLimitMin != null && (dayMinutes.get(mt.day) ?? 0) + (mt.end - mt.start) > hardLimitMin) return false;
+      if ((busy.get(mt.day)?.length ?? 0) === 0) newlyUsed.add(mt.day);
+    }
+    if (hardCampusDays != null) {
+      const currentlyUsed = [...busy.values()].filter((list) => list.length > 0).length;
+      if (currentlyUsed + newlyUsed.size > hardCampusDays) return false;
     }
     return true;
   };
