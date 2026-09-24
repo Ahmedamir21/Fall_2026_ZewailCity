@@ -141,10 +141,14 @@ export function BestSchedule({
       {report && report.noSections.length === 0 && report.blockedByHard.length === 0 && report.totalValid === 0 && (
         <div className="mt-4">
           <EmptyState
-            icon="⚠️"
+            icon={report.unsatisfiableHard.length > 0 ? '🔒' : '⚠️'}
             tone="warn"
-            title="No valid schedules found."
-            message="Each course has sections available, but they all overlap in time. Try changing your course selections or schedule preferences."
+            title={report.unsatisfiableHard.length > 0 ? 'No schedule matches your required constraints.' : 'No valid schedules found.'}
+            message={
+              report.unsatisfiableHard.length > 0
+                ? `The selected courses cannot be combined while satisfying: ${report.unsatisfiableHard.join('; ')}. Relax that requirement or change a course/section.`
+                : 'Each course has sections available, but they all overlap in time. Try changing your course selections or schedule preferences.'
+            }
           />
         </div>
       )}
