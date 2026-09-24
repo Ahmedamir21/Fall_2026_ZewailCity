@@ -1,17 +1,57 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import type { MeetingType } from '../types';
 
 export interface AssistantMessage {
   role: 'user' | 'assistant';
   text: string;
 }
 
-export function ScheduleAssistant({ context }: { context: Record<string, unknown> }) {
+export type AssistantProposalChange =
+  | {
+      type: 'set_meeting';
+      courseId: string;
+      meetingType: MeetingType;
+      meetingId: string;
+      label?: string;
+    }
+  | {
+      type: 'add_course';
+      courseId: string;
+      label?: string;
+    }
+  | {
+      type: 'remove_course';
+      courseId: string;
+      label?: string;
+    };
+
+export interface AssistantProposal {
+  title?: string;
+  summary?: string;
+  changes: AssistantProposalChange[];
+}
+
+interface Props {
+  context: Record<string, unknown>;
+  onApplyProposal?: (proposal: AssistantProposal) => { ok: boolean; message: string };
+}
+
+const QUICK_PROMPTS = [
+  'Reduce gaps',
+  'Fewer campus days',
+  'Finish earlier',
+  'Avoid 8 AM',
+  'Suggest another course',
+];
+
+export function ScheduleAssistant({ context, onApplyProposal }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [proposal, setProposal] = useState<AssistantProposal | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,53 +71,72 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
   useEffect(() => {
     if (!open) return;
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, sending, open]);
+  }, [messages, sending, open, proposal]);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    const message = input.trim();
-    if (!message || sending) return;
+  const sendMessage = async (message: string) => {
+    const clean = message.trim();
+    if (!clean || sending) return;
 
     const previous = messages.slice(-6);
-    setMessages((m) => [...m, { role: 'user', text: message }]);
+    setMessages((m) => [...m, { role: 'user', text: clean }]);
     setInput('');
     setError(null);
+    setProposal(null);
     setSending(true);
 
     try {
-      const response = await fetch('/api/assistant?v=2', {
+      const response = await fetch('/api/assistant?v=3', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history: previous, context }),
+        body: JSON.stringify({ message: clean, history: previous, context }),
       });
 
       const raw = await response.text();
-      let data: { text?: string; error?: string } = {};
+      let data: { text?: string; error?: string; proposal?: AssistantProposal | null } = {};
 
       try {
         data = raw ? JSON.parse(raw) : {};
       } catch {
         throw new Error(
           response.status === 404
-            ? 'The AI endpoint is not available on this deployment yet. Redeploy the latest branch and try again.'
+            ? 'The AI endpoint is not available on this deployment yet.'
             : 'The assistant service returned an unexpected response.',
         );
       }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'The assistant could not answer right now.');
-      }
-
-      if (!data.text) {
-        throw new Error('The assistant returned an empty response.');
-      }
+      if (!response.ok) throw new Error(data.error || 'The assistant could not answer right now.');
+      if (!data.text) throw new Error('The assistant returned an empty response.');
 
       setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
+
+      if (
+        data.proposal &&
+        Array.isArray(data.proposal.changes) &&
+        data.proposal.changes.length > 0
+      ) {
+        setProposal(data.proposal);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The assistant could not answer right now.');
     } finally {
       setSending(false);
     }
+  };
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    void sendMessage(input);
+  };
+
+  const applyProposal = () => {
+    if (!proposal || !onApplyProposal) return;
+    const result = onApplyProposal(proposal);
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+    setProposal(null);
+    setMessages((m) => [...m, { role: 'assistant', text: result.message }]);
   };
 
   return (
@@ -101,7 +160,7 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
                 <div className="flex items-center gap-2">
                   <span className="assistant-mark" aria-hidden>✦</span>
                   <h2 className="text-[14px] font-extrabold tracking-tight">Schedule Assistant</h2>
-                  <span className="pill">Beta · v2</span>
+                  <span className="pill">Beta · v3</span>
                 </div>
                 <p className="mt-0.5 text-[10.5px]" style={{ color: 'var(--muted)' }}>
                   Arabic · English · Franco — grounded in your current planner
@@ -116,8 +175,21 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
                   <span className="assistant-empty-icon" aria-hidden>✦</span>
                   <p className="font-bold">Ask naturally.</p>
                   <p className="mt-1 text-[11.5px]" style={{ color: 'var(--muted)' }}>
-                    Ask about your courses, sections, conflicts, timetable or preferences in your own words.
+                    Ask about your schedule or tell me what you want changed. Nothing changes until you confirm it.
                   </p>
+                  <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        className="btn btn-tap px-2.5 py-1.5 text-[10.5px]"
+                        onClick={() => void sendMessage(prompt)}
+                        disabled={sending}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -127,17 +199,59 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
                 </div>
               ))}
 
+              {proposal && (
+                <div className="assistant-proposal" aria-label="Proposed schedule changes">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.06em]" style={{ color: 'var(--accent)' }}>
+                        Preview changes
+                      </p>
+                      {proposal.title && <p className="mt-1 text-[12.5px] font-bold">{proposal.title}</p>}
+                      {proposal.summary && (
+                        <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: 'var(--muted)' }}>
+                          {proposal.summary}
+                        </p>
+                      )}
+                    </div>
+                    <span className="pill">{proposal.changes.length} change{proposal.changes.length === 1 ? '' : 's'}</span>
+                  </div>
+
+                  <div className="mt-2.5 space-y-1.5">
+                    {proposal.changes.map((change, index) => (
+                      <div key={index} className="assistant-proposal-row">
+                        <span aria-hidden>→</span>
+                        <span>{change.label || (
+                          change.type === 'set_meeting'
+                            ? `${change.courseId} · ${change.meetingType}`
+                            : change.type === 'add_course'
+                              ? `Add ${change.courseId}`
+                              : `Remove ${change.courseId}`
+                        )}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" className="btn btn-accent btn-tap flex-1" onClick={applyProposal}>
+                      Apply changes
+                    </button>
+                    <button type="button" className="btn btn-tap" onClick={() => setProposal(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[9.5px]" style={{ color: 'var(--muted-2)' }}>
+                    The planner validates every course, section, conflict and credit limit again before applying.
+                  </p>
+                </div>
+              )}
+
               {sending && (
                 <div className="assistant-message assistant">
                   <span className="assistant-typing" aria-label="Assistant is thinking"><i /><i /><i /></span>
                 </div>
               )}
 
-              {error && (
-                <div className="assistant-error" role="alert">
-                  {error}
-                </div>
-              )}
+              {error && <div className="assistant-error" role="alert">{error}</div>}
             </div>
 
             <form className="assistant-compose" onSubmit={submit}>
@@ -152,15 +266,13 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
                   }
                 }}
                 rows={1}
-                placeholder="Ask anything about your schedule..."
+                placeholder="Ask or tell me what to change..."
                 aria-label="Message Schedule Assistant"
                 disabled={sending}
               />
-              <button type="submit" className="assistant-send" disabled={!input.trim() || sending} aria-label="Send message">
-                ↑
-              </button>
+              <button type="submit" className="assistant-send" disabled={!input.trim() || sending} aria-label="Send message">↑</button>
             </form>
-            <p className="assistant-disclaimer">Schedule data is manually verified, not live. Confirm final registration details on Self-Service.</p>
+            <p className="assistant-disclaimer">AI suggestions use the planner's current data. Confirm final registration details on Self-Service.</p>
           </section>
         </div>
       )}
