@@ -55,7 +55,7 @@ import { AboutPage } from './components/AboutPage';
 import { BestSchedule } from './components/BestSchedule';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
-import { ScheduleAssistant, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
+import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 import {
@@ -573,6 +573,37 @@ export default function App() {
     setAssistantConstraints((prev) =>
       Array.from(new Set([...prev, ...constraints.map((x) => x.trim()).filter(Boolean)])).slice(0, 8),
     );
+  }, []);
+
+  const applyAssistantLockActions = useCallback((actions: AssistantLockAction[]) => {
+    setPlannerLocks((prev) => {
+      let next: PlannerLocks = {
+        courseIds: [...prev.courseIds],
+        components: Object.fromEntries(
+          Object.entries(prev.components).map(([courseId, byKind]) => [courseId, { ...byKind }]),
+        ),
+      };
+
+      actions.forEach((action) => {
+        if (!COURSE_BY_ID[action.courseId] || !picksRef.current[action.courseId]) return;
+        if (action.action === 'lock_course') {
+          if (!next.courseIds.includes(action.courseId)) next.courseIds.push(action.courseId);
+          return;
+        }
+        if (action.action === 'unlock_course') {
+          next.courseIds = next.courseIds.filter((id) => id !== action.courseId);
+          return;
+        }
+        if (!action.meetingType) return;
+        const byKind = { ...(next.components[action.courseId] ?? {}) };
+        if (action.action === 'lock_component') byKind[action.meetingType] = true;
+        else delete byKind[action.meetingType];
+        if (Object.keys(byKind).length) next.components[action.courseId] = byKind;
+        else delete next.components[action.courseId];
+      });
+
+      return next;
+    });
   }, []);
 
   const changePick = useCallback((courseId: string, pick: Pick) => {
@@ -1934,6 +1965,7 @@ export default function App() {
         constraints={assistantConstraints}
         onAddConstraints={addAssistantConstraints}
         onRemoveConstraint={removeAssistantConstraint}
+        onLockActions={applyAssistantLockActions}
       />}
 
       <CommandPalette
