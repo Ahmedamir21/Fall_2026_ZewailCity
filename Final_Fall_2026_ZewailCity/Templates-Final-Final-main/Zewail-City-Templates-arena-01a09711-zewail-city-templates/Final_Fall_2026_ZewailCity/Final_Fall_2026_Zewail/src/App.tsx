@@ -531,6 +531,7 @@ export default function App() {
     }
 
     const previousPick = picksRef.current[courseId];
+    const previousInstructorFilter = instructorFilter[courseId];
 
     setPicks((prev) => {
       const next = { ...prev };
@@ -550,6 +551,9 @@ export default function App() {
           actionLabel: 'Undo',
           onAction: () => {
             setPicks((prev) => ({ ...prev, [courseId]: previousPick ?? emptyPick() }));
+            if (previousInstructorFilter != null) {
+              setInstructorFilter((prev) => ({ ...prev, [courseId]: previousInstructorFilter }));
+            }
             setToast(null);
           },
         });
@@ -566,7 +570,7 @@ export default function App() {
         return next;
       });
     }
-  }, [showToast]);
+  }, [showToast, instructorFilter]);
 
   const clearOne = useCallback((courseId: string) => {
     setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
@@ -593,6 +597,9 @@ export default function App() {
 
   const performClearAll = useCallback(() => {
     const previousPicks = picksRef.current;
+    const previousInstructorFilter = instructorFilter;
+    const previousTypeFilter = typeFilter;
+    const previousCourseFilter = courseFilter;
     setPicks({});
     setInstructorFilter({});
     setComboIndex(0);
@@ -605,10 +612,13 @@ export default function App() {
       actionLabel: 'Undo',
       onAction: () => {
         setPicks(previousPicks);
+        setInstructorFilter(previousInstructorFilter);
+        setTypeFilter(previousTypeFilter);
+        setCourseFilter(previousCourseFilter);
         setToast(null);
       },
     });
-  }, [showToast]);
+  }, [showToast, instructorFilter, typeFilter, courseFilter]);
 
   const requestClearAll = useCallback(() => setConfirmClearOpen(true), []);
 
@@ -927,6 +937,18 @@ export default function App() {
             >
               {showAbout ? '‹ Planner' : 'ℹ️ About'}
             </button>
+
+            {major && !showAbout && (
+              <button
+                type="button"
+                className="btn btn-tap"
+                onClick={() => setCommandOpen(true)}
+                title="Search courses and actions (Ctrl/Cmd + K)"
+              >
+                ⌕ Search
+                <span className="pill hidden lg:inline-flex">⌘K</span>
+              </button>
+            )}
 
             <ThemeToggle theme={theme} onChange={setTheme} />
           </div>
