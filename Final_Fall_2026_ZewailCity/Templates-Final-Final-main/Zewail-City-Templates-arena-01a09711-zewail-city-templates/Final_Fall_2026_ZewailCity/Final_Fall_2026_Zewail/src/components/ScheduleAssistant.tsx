@@ -45,7 +45,7 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
     setSending(true);
 
     try {
-      const response = await fetch('/api/assistant', {
+      const response = await fetch('/api/assistant?v=2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history: previous, context }),
@@ -101,7 +101,7 @@ export function ScheduleAssistant({ context }: { context: Record<string, unknown
                 <div className="flex items-center gap-2">
                   <span className="assistant-mark" aria-hidden>✦</span>
                   <h2 className="text-[14px] font-extrabold tracking-tight">Schedule Assistant</h2>
-                  <span className="pill">Beta</span>
+                  <span className="pill">Beta · v2</span>
                 </div>
                 <p className="mt-0.5 text-[10.5px]" style={{ color: 'var(--muted)' }}>
                   Arabic · English · Franco — grounded in your current planner
