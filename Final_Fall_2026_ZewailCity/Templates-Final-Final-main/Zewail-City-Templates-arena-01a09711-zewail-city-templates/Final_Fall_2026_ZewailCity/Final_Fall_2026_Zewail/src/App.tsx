@@ -58,6 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
+import { TERM_LABEL, TERM_SESSION_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -1194,7 +1195,7 @@ export default function App() {
 
   const assistantContext = useMemo<Record<string, unknown>>(
     () => ({
-      term: 'Fall 2026 · Main Session',
+      term: TERM_SESSION_LABEL,
       dataLastVerified: COURSE_DATA_LAST_VERIFIED,
       major: major ? { id: major.id, title: major.title, subtitle: major.subtitle } : null,
       year: yearPlan ? { id: yearPlan.id, label: yearPlan.label } : null,
@@ -1314,7 +1315,7 @@ export default function App() {
 
   const copySummary = useCallback(() => {
     const lines: string[] = [
-      'My Zewail City schedule — Fall 2026 (Main Session)',
+      `My Zewail City schedule — ${TERM_SESSION_LABEL}`,
       '--------------------------------',
     ];
 
@@ -1372,7 +1373,7 @@ export default function App() {
               className="text-[10.5px] font-bold uppercase tracking-[0.09em]"
               style={{ color: 'var(--accent)' }}
             >
-              Fall 2026 · Main Session
+              {TERM_SESSION_LABEL}
             </p>
 
             <h1 className="mt-1 text-[20px] font-extrabold tracking-tight sm:text-[23px]">
