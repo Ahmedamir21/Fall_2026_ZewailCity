@@ -124,8 +124,8 @@ export default function App() {
   });
 
   /**
-   * Credit-cap SETTING: a plain integer (13/18/21) or null when never chosen. The effective
-   * cap is always `creditCap ?? 21` and can never exceed 21 in any state of the app.
+   * Credit-cap SETTING: a plain integer (13/18) or null when never chosen. The effective
+   * cap is always `creditCap ?? 18` and can never exceed 18 in any state of the app.
    * Nothing else is stored — no GPA value, no academic-standing label of any kind.
    */
   const [creditCap, setCreditCap] = useState<CreditCap | null>(() => savedState?.creditCap ?? null);
@@ -308,7 +308,7 @@ export default function App() {
     [courses, picks],
   );
 
-  /** Effective credit cap — the tier setting when chosen, otherwise the 21-credit hard ceiling. */
+  /** Effective credit cap — the tier setting when chosen, otherwise the 18-credit hard ceiling. */
   const effectiveCap = effectiveCreditCap(creditCap);
 
   /* ---------------- Local Storage persistence (URL state always wins on load) ---------------- */
