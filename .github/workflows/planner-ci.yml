@@ -2,7 +2,7 @@ name: Planner CI
 
 on:
   push:
-    branches: [add-year-1-courses]
+    branches: [add-year-1-courses, semester-ready-refactor]
   pull_request:
     branches: [add-year-1-courses]
   workflow_dispatch:
@@ -30,6 +30,9 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Data integrity tests
+        run: npm run test:data
 
       - name: Assistant feature tests
         run: npm run test:assistant
