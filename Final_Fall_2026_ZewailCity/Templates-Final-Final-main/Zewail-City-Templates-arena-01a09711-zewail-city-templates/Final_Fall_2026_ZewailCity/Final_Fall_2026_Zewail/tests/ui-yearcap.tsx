@@ -56,18 +56,20 @@ act(() => {
 check('major picker shows first', doc.body.textContent!.includes('Choose Your Major'));
 click(buttonByText('Data Science & AI')!);
 check('year picker appears after picking a major', doc.body.textContent!.includes('Choose Your Year'));
-check('all three fixed year labels shown, no Year 1', ['Year 2 (Sophomore)', 'Year 3 (Junior)', 'Year 4 (Senior)'].every((l) => doc.body.textContent!.includes(l)) && !doc.body.textContent!.includes('Year 1'));
+check('all four year labels are shown', ['Year 1 (Freshman)', 'Year 2 (Sophomore)', 'Year 3 (Junior)', 'Year 4 (Senior)'].every((l) => doc.body.textContent!.includes(l)));
 check('course picker NOT shown before a year is chosen', !doc.body.textContent!.includes('Courses this term'));
 
 click(buttonByText('Year 3 (Junior)')!);
 check('course picker appears scoped to Year 3 (DSAI 307 present, IT 205 absent)', doc.body.textContent!.includes('Courses this term') && doc.body.textContent!.includes('DSAI 307') && !doc.body.textContent!.includes('IT 205'));
 check('shared CSAI 203 + CSAI 301 referenced in DSAI Year 3', doc.body.textContent!.includes('CSAI 203') && doc.body.textContent!.includes('CSAI 301'));
 
-/* ================= 2. credit-limit note (dismissible, three tier buttons) ================= */
-check('credit-limit note visible with the full three-case text', doc.body.textContent!.includes('below 2.00 GPA → up to 13 credits') && doc.body.textContent!.includes('2.00–3.00 → up to 18 credits') && doc.body.textContent!.includes('above 3.00 → up to 21 credits'));
+/* ================= 2. privacy-first credit-limit chooser ================= */
+check('credit-limit chooser stays hidden until requested', !doc.body.textContent!.includes('Planning credit limit'));
 check('default cap is 21 before any tier chosen', doc.body.textContent!.includes('21-credit limit'));
-click(buttonByText('Below 2.00')!);
-check('choosing "Below 2.00" sets the 13-cap and dismisses the note', doc.body.textContent!.includes('13-credit limit') && !doc.body.textContent!.includes('Credit limits:'));
+click(buttonByText('change limit')!);
+check('manual chooser opens with privacy-first copy', doc.body.textContent!.includes('Planning credit limit') && doc.body.textContent!.includes('Your GPA is never requested or stored.'));
+click(buttonByText('13 credits')!);
+check('choosing 13 credits sets the cap and dismisses the chooser', doc.body.textContent!.includes('13-credit limit') && !doc.body.textContent!.includes('Planning credit limit'));
 const persisted = () => dom.window.localStorage.getItem('zw-app-state-v2') ?? '';
 check('nothing labeled as GPA is persisted', !persisted().toLowerCase().includes('gpa'));
 check('persisted cap is the plain integer 13', persisted().includes('"creditCap":13'));
@@ -93,9 +95,9 @@ check('after removing a course the blocked one can be added', retry.checked === 
 
 /* ================= 4. change-limit link reopens the tier choice ================= */
 click(buttonByText('change limit')!);
-check('change-limit reopens the note', doc.body.textContent!.includes('Credit limits:'));
-click(buttonByText('Above 3.00')!);
-check('switching to "Above 3.00" activates the 21-cap', doc.body.textContent!.includes('21-credit limit'));
+check('change-limit reopens the chooser', doc.body.textContent!.includes('Planning credit limit'));
+click(buttonByText('Over Load · 21 credits')!);
+check('switching to Over Load activates the 21-cap', doc.body.textContent!.includes('21-credit limit'));
 
 /* ================= 5. cross-year browser ================= */
 click(buttonByText('Choose from another year')!);
@@ -111,7 +113,7 @@ check('cross-year course appears in the main picker with a Year 4 badge', doc.bo
 /* ================= 6. changing year resets the cap tier ================= */
 click(buttonByText('Change year')!);
 click(buttonByText('Year 4 (Senior)')!);
-check('changing year re-prompts the credit-limit note', doc.body.textContent!.includes('Credit limits:'));
+check('changing year keeps the credit chooser hidden until requested', !doc.body.textContent!.includes('Planning credit limit'));
 check('cap reset to the default 21 ceiling', doc.body.textContent!.includes('21-credit limit'));
 check('Year 4 list shows the no-fixed-schedule Senior Project', doc.body.textContent!.includes('CSAI 498'));
 
