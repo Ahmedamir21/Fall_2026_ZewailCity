@@ -16,6 +16,7 @@ import { SchedulePreferencesPanel } from './SchedulePreferences';
 import { CompareSchedules } from './CompareSchedules';
 import { ShareSchedule } from './ShareSchedule';
 import { EmptyState } from './EmptyState';
+import { TERM_LABEL } from '../config/semester';
 
 interface Props {
   courses: Course[];
@@ -389,7 +390,7 @@ function ScheduleCard({
           picks={sharePicks}
           className="btn btn-tap"
           label="Share"
-          shareTitle={`My ${label} — Fall 2026`}
+          shareTitle={`My ${label} — ${TERM_LABEL}`}
           extras={extras}
         />
       </footer>
