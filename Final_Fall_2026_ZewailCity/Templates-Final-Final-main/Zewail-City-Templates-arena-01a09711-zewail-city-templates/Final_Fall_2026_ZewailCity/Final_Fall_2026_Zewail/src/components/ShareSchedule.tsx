@@ -12,11 +12,13 @@ interface Props {
   label?: string;
   extras?: ShareExtras;
   shareTitle?: string;
+  /** Marks the page's primary share trigger so keyboard/command actions can invoke it. */
+  dataSharePrimary?: boolean;
   /** Optional state summary shown inside the modal (Version B's clearer share sheet). */
   summary?: { majorName: string; selectedCount: number; totalCredits: number; conflictFree: boolean };
 }
 
-export function ShareSchedule({ majorId, courses, picks, disabled, className, label, extras, shareTitle, summary }: Props) {
+export function ShareSchedule({ majorId, courses, picks, disabled, className, label, extras, shareTitle, dataSharePrimary, summary }: Props) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [copied, setCopied] = useState(false);
@@ -70,6 +72,7 @@ export function ShareSchedule({ majorId, courses, picks, disabled, className, la
         onClick={openPanel}
         disabled={disabled}
         title="Generate a link that restores this exact schedule for anyone who opens it"
+        data-share-primary={dataSharePrimary ? 'true' : undefined}
       >
         {label ?? '🔗 Share Schedule'}
       </button>
