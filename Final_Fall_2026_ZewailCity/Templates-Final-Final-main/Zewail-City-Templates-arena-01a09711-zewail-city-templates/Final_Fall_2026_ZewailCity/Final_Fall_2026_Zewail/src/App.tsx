@@ -58,6 +58,14 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
+import {
+  isComponentLocked,
+  isCourseLocked,
+  loadPlannerLocks,
+  normalizeLocks,
+  savePlannerLocks,
+  type PlannerLocks,
+} from './lib/assistantControls';
 
 function isAboutHash(): boolean {
   return typeof window !== 'undefined' && (window.location.hash ?? '').replace('#', '') === 'about';
@@ -210,12 +218,41 @@ export default function App() {
   /** Lifted so the Credits Dashboard and the mobile action bar can open the preferences modal. */
   const [prefsOpen, setPrefsOpen] = useState(false);
 
+  const [plannerLocks, setPlannerLocks] = useState<PlannerLocks>(() => loadPlannerLocks());
+  const [assistantConstraints, setAssistantConstraints] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = window.localStorage.getItem('zc-assistant-constraints-v1');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string').slice(0, 8) : [];
+    } catch {
+      return [];
+    }
+  });
+
   /** Always-fresh mirrors so the stable toggleCourse callback can enforce the credit cap. */
   const picksRef = useRef(picks);
   picksRef.current = picks;
 
   const creditCapRef = useRef(creditCap);
   creditCapRef.current = creditCap;
+
+  useEffect(() => {
+    const normalized = normalizeLocks(plannerLocks, picks);
+    if (JSON.stringify(normalized) !== JSON.stringify(plannerLocks)) {
+      setPlannerLocks(normalized);
+      return;
+    }
+    savePlannerLocks(normalized);
+  }, [plannerLocks, picks]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('zc-assistant-constraints-v1', JSON.stringify(assistantConstraints.slice(0, 8)));
+    } catch {
+      // Persistence is best-effort.
+    }
+  }, [assistantConstraints]);
 
   useEffect(() => {
     const onHashChange = () => setShowAbout(isAboutHash());
@@ -454,6 +491,7 @@ export default function App() {
   const selectMajor = useCallback((id: string) => {
     setMajorId(id);
     setPicks({});
+    setPlannerLocks({ courseIds: [], components: {} });
     setInstructorFilter({});
     setCourseFilter('all');
     setTypeFilter('All');
@@ -467,6 +505,8 @@ export default function App() {
     setCapNotice(null);
     setCapShake(null);
     setCrossYearOpen(false);
+    setPlannerLocks({ courseIds: [], components: {} });
+    setAssistantConstraints([]);
   }, []);
 
   const selectYear = useCallback((id: string) => {
@@ -489,6 +529,8 @@ export default function App() {
 
     setShowYearPicker(false);
     setCrossYearOpen(false);
+    setPlannerLocks({ courseIds: [], components: {} });
+    setAssistantConstraints([]);
   }, []);
 
   const chooseCreditCap = useCallback((cap: CreditCap) => {
@@ -502,6 +544,37 @@ export default function App() {
   }, []);
 
   const reopenCapNote = useCallback(() => setCapNoteDismissed(false), []);
+
+  const toggleCourseLock = useCallback((courseId: string) => {
+    setPlannerLocks((prev) => ({
+      ...prev,
+      courseIds: prev.courseIds.includes(courseId)
+        ? prev.courseIds.filter((id) => id !== courseId)
+        : [...prev.courseIds, courseId],
+    }));
+  }, []);
+
+  const toggleComponentLock = useCallback((courseId: string, kind: MeetingType) => {
+    setPlannerLocks((prev) => {
+      const byKind = { ...(prev.components[courseId] ?? {}) };
+      if (byKind[kind]) delete byKind[kind];
+      else byKind[kind] = true;
+      const components = { ...prev.components };
+      if (Object.keys(byKind).length) components[courseId] = byKind;
+      else delete components[courseId];
+      return { ...prev, components };
+    });
+  }, []);
+
+  const removeAssistantConstraint = useCallback((constraint: string) => {
+    setAssistantConstraints((prev) => prev.filter((item) => item !== constraint));
+  }, []);
+
+  const addAssistantConstraints = useCallback((constraints: string[]) => {
+    setAssistantConstraints((prev) =>
+      Array.from(new Set([...prev, ...constraints.map((x) => x.trim()).filter(Boolean)])).slice(0, 8),
+    );
+  }, []);
 
   const changePick = useCallback((courseId: string, pick: Pick) => {
     setPicks((prev) => ({ ...prev, [courseId]: pick }));
@@ -566,6 +639,14 @@ export default function App() {
     }
 
     if (!taking) {
+      setPlannerLocks((prev) => {
+        const components = { ...prev.components };
+        delete components[courseId];
+        return {
+          courseIds: prev.courseIds.filter((id) => id !== courseId),
+          components,
+        };
+      });
       setInstructorFilter((prev) => {
         if (prev[courseId] == null) return prev;
 
@@ -579,6 +660,11 @@ export default function App() {
 
   const clearOne = useCallback((courseId: string) => {
     setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
+    setPlannerLocks((prev) => {
+      const components = { ...prev.components };
+      delete components[courseId];
+      return { ...prev, components };
+    });
     setInstructorFilter((prev) => {
       if (prev[courseId] == null) return prev;
 
@@ -632,11 +718,20 @@ export default function App() {
       const next: PickState = { ...prev };
 
       schedule.perCourse.forEach(({ course, pairing }) => {
-        next[course.id] = {
+        const current = prev[course.id] ?? emptyPick();
+        const proposed: Pick = {
           Lecture: pairing.lecture ? uid(pairing.lecture) : null,
           Lab: pairing.labs[0] ? uid(pairing.labs[0]) : null,
           Tutorial: pairing.tutorials[0] ? uid(pairing.tutorials[0]) : null,
         };
+        if (isCourseLocked(plannerLocks, course.id)) {
+          next[course.id] = current;
+          return;
+        }
+        (['Lecture', 'Lab', 'Tutorial'] as MeetingType[]).forEach((kind) => {
+          if (isComponentLocked(plannerLocks, course.id, kind)) proposed[kind] = current[kind];
+        });
+        next[course.id] = proposed;
       });
 
       return next;
@@ -654,7 +749,7 @@ export default function App() {
 
     setComboIndex(0);
     setBest(null);
-  }, []);
+  }, [plannerLocks]);
 
   const autoFill = useCallback(() => {
     if (!generation) return;
@@ -882,6 +977,9 @@ export default function App() {
         }
 
         if (change.type === 'remove_course') {
+          if (isCourseLocked(plannerLocks, change.courseId)) {
+            return { ok: false, message: `${course.code} is locked. Unlock it before AI can remove it.` };
+          }
           delete next[change.courseId];
           continue;
         }
@@ -894,6 +992,13 @@ export default function App() {
         }
 
         if (change.type === 'add_course') continue;
+
+        if (isComponentLocked(plannerLocks, change.courseId, change.meetingType)) {
+          return {
+            ok: false,
+            message: `${course.code} ${change.meetingType} is locked. Unlock it before AI can change that section.`,
+          };
+        }
 
         const option = optionsFor(course, change.meetingType).find((item) => item.key === change.meetingId);
         if (!option) {
@@ -930,7 +1035,7 @@ export default function App() {
         nextCredits: nextCourses.reduce((sum, course) => sum + (course.credits ?? 0), 0),
       };
     },
-    [major],
+    [major, plannerLocks],
   );
 
   const previewAssistantProposal = useCallback(
@@ -999,6 +1104,11 @@ export default function App() {
         latest: metrics.latest != null ? to12h(metrics.latest) : null,
       },
       preferences,
+      persistentConstraints: assistantConstraints,
+      locks: {
+        courseIds: plannerLocks.courseIds,
+        components: plannerLocks.components,
+      },
       currentIssues: issues.map((issue) => ({
         course: issue.code,
         kind: issue.kind,
@@ -1068,6 +1178,8 @@ export default function App() {
       totalCredits,
       metrics,
       preferences,
+      assistantConstraints,
+      plannerLocks,
       issues,
       overlapsFound,
       detailEntries,
@@ -1427,6 +1539,7 @@ export default function App() {
               onPrefsOpenChange={setPrefsOpen}
               onPreferencesChange={setPreferences}
               onUse={useGeneratedSchedule}
+              locks={plannerLocks}
             />
 
             <div className="grid gap-3 xl:grid-cols-[minmax(340px,420px)_minmax(0,1fr)]">
@@ -1444,6 +1557,9 @@ export default function App() {
                 capNotice={capNotice}
                 shake={capShake}
                 onHoverCourse={setHoveredCourseId}
+                locks={plannerLocks}
+                onToggleCourseLock={toggleCourseLock}
+                onToggleComponentLock={toggleComponentLock}
               />
 
               <div className="space-y-3">
@@ -1768,6 +1884,9 @@ export default function App() {
         context={assistantContext}
         onPreviewProposal={previewAssistantProposal}
         onApplyProposal={applyAssistantProposal}
+        constraints={assistantConstraints}
+        onAddConstraints={addAssistantConstraints}
+        onRemoveConstraint={removeAssistantConstraint}
       />}
 
       <CommandPalette
