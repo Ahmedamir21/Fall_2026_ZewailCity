@@ -1,6 +1,6 @@
 import type { TimetableEvent } from './Timetable';
 import { DAY_LABEL, DAYS, formatRange } from '../lib/time';
-import { CREATOR_CREDIT, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_LABEL } from '../config/semester';
+import { SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_LABEL } from '../config/semester';
 
 function cssVar(name: string, fallback: string): string {
   if (typeof window === 'undefined') return fallback;
