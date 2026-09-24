@@ -32,8 +32,20 @@ export interface AssistantProposal {
   changes: AssistantProposalChange[];
 }
 
+export interface AssistantProposalPreview {
+  ok: boolean;
+  message?: string;
+  stats?: {
+    campusDays: string;
+    gaps: string;
+    credits: string;
+    conflicts: string;
+  };
+}
+
 interface Props {
   context: Record<string, unknown>;
+  onPreviewProposal?: (proposal: AssistantProposal) => AssistantProposalPreview;
   onApplyProposal?: (proposal: AssistantProposal) => { ok: boolean; message: string };
 }
 
@@ -45,7 +57,7 @@ const QUICK_PROMPTS = [
   'Suggest another course',
 ];
 
-export function ScheduleAssistant({ context, onApplyProposal }: Props) {
+export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [input, setInput] = useState('');
@@ -127,6 +139,8 @@ export function ScheduleAssistant({ context, onApplyProposal }: Props) {
     e.preventDefault();
     void sendMessage(input);
   };
+
+  const proposalPreview = proposal && onPreviewProposal ? onPreviewProposal(proposal) : null;
 
   const applyProposal = () => {
     if (!proposal || !onApplyProposal) return;
@@ -231,8 +245,28 @@ export function ScheduleAssistant({ context, onApplyProposal }: Props) {
                     ))}
                   </div>
 
+                  {proposalPreview?.stats && (
+                    <div className="assistant-proposal-stats mt-3">
+                      <span><strong>Campus days</strong><small>{proposalPreview.stats.campusDays}</small></span>
+                      <span><strong>Gaps</strong><small>{proposalPreview.stats.gaps}</small></span>
+                      <span><strong>Credits</strong><small>{proposalPreview.stats.credits}</small></span>
+                      <span><strong>Conflicts</strong><small>{proposalPreview.stats.conflicts}</small></span>
+                    </div>
+                  )}
+
+                  {proposalPreview && !proposalPreview.ok && (
+                    <div className="assistant-error mt-3" role="alert">
+                      {proposalPreview.message || 'This proposal cannot be applied safely.'}
+                    </div>
+                  )}
+
                   <div className="mt-3 flex gap-2">
-                    <button type="button" className="btn btn-accent btn-tap flex-1" onClick={applyProposal}>
+                    <button
+                      type="button"
+                      className="btn btn-accent btn-tap flex-1"
+                      onClick={applyProposal}
+                      disabled={proposalPreview?.ok === false}
+                    >
                       Apply changes
                     </button>
                     <button type="button" className="btn btn-tap" onClick={() => setProposal(null)}>
