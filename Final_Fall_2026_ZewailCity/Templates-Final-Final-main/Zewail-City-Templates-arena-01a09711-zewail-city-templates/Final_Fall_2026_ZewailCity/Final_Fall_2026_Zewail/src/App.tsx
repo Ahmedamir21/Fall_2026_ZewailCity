@@ -721,7 +721,9 @@ export default function App() {
     const previousInstructorFilter = instructorFilter;
     const previousTypeFilter = typeFilter;
     const previousCourseFilter = courseFilter;
+    const previousLocks = plannerLocks;
     setPicks({});
+    setPlannerLocks({ courseIds: [], components: {} });
     setInstructorFilter({});
     setComboIndex(0);
     setBest(null);
@@ -736,10 +738,11 @@ export default function App() {
         setInstructorFilter(previousInstructorFilter);
         setTypeFilter(previousTypeFilter);
         setCourseFilter(previousCourseFilter);
+        setPlannerLocks(previousLocks);
         setToast(null);
       },
     });
-  }, [showToast, instructorFilter, typeFilter, courseFilter]);
+  }, [showToast, instructorFilter, typeFilter, courseFilter, plannerLocks]);
 
   const requestClearAll = useCallback(() => setConfirmClearOpen(true), []);
 
@@ -995,6 +998,32 @@ export default function App() {
       }
 
       const allowedCourseIds = new Set(allAvailableCourseIds(major));
+
+      if (proposal.changes.length > 8) {
+        return { ok: false, message: 'That proposal contains too many changes to validate safely at once.' };
+      }
+
+      const seenComponent = new Set<string>();
+      const perCourseTypes = new Map<string, Set<string>>();
+      for (const change of proposal.changes) {
+        const kinds = perCourseTypes.get(change.courseId) ?? new Set<string>();
+        kinds.add(change.type);
+        perCourseTypes.set(change.courseId, kinds);
+
+        if (change.type === 'set_meeting') {
+          const key = `${change.courseId}:${change.meetingType}`;
+          if (seenComponent.has(key)) {
+            return { ok: false, message: 'That proposal tries to set the same course component more than once. Ask for another option.' };
+          }
+          seenComponent.add(key);
+        }
+      }
+      for (const [, kinds] of perCourseTypes) {
+        if (kinds.has('remove_course') && kinds.size > 1) {
+          return { ok: false, message: 'That proposal both removes and changes the same course. Ask for another option.' };
+        }
+      }
+
       const next: PickState = Object.fromEntries(
         Object.entries(picksRef.current).map(([courseId, pick]) => [courseId, { ...pick }]),
       );
