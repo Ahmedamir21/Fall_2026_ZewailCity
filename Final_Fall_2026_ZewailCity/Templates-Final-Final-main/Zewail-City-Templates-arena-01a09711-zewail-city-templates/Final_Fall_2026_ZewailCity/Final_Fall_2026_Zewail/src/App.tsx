@@ -58,7 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { TERM_SESSION_LABEL } from './config/semester';
+import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -223,7 +223,12 @@ export default function App() {
   const [assistantConstraints, setAssistantConstraints] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
-      const raw = window.localStorage.getItem('zc-assistant-constraints-v1');
+      const storageKey = `zc-assistant-constraints-v2:${SEMESTER_CONFIG.key}`;
+      const legacy =
+        SEMESTER_CONFIG.key === LEGACY_UNTAGGED_SEMESTER_KEY
+          ? window.localStorage.getItem('zc-assistant-constraints-v1')
+          : null;
+      const raw = window.localStorage.getItem(storageKey) ?? legacy;
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string').slice(0, 8) : [];
     } catch {
@@ -249,7 +254,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem('zc-assistant-constraints-v1', JSON.stringify(assistantConstraints.slice(0, 8)));
+      window.localStorage.setItem(`zc-assistant-constraints-v2:${SEMESTER_CONFIG.key}`, JSON.stringify(assistantConstraints.slice(0, 8)));
     } catch {
       // Persistence is best-effort.
     }
