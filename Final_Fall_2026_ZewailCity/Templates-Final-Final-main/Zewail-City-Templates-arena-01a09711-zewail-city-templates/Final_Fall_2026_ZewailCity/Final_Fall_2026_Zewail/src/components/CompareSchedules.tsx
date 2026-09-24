@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { DAYS, formatDuration, formatRange, to12h } from '../lib/time';
 import type { GeneratedSchedule } from '../lib/bestSchedule';
+import { meetingOption } from '../lib/picks';
 
 interface Props {
   schedules: GeneratedSchedule[];
@@ -85,8 +86,7 @@ function Badges({ schedules, index }: { schedules: GeneratedSchedule[]; index: n
 
 function componentInstructorLabel(entry: GeneratedSchedule['perCourse'][number]): string {
   const parts = entry.pairing.meetings.map((meeting) => {
-    const idx = entry.pairing.instructors?.[meeting.type];
-    const instructor = idx != null ? entry.course.instructors[idx] : entry.instructor;
+    const instructor = meetingOption(entry.course, meeting)?.instructor ?? entry.instructor;
     const name = instructor?.unassigned ? 'Unassigned' : instructor?.name ?? entry.instructor.name;
     return `${meeting.type}: ${name}`;
   });
