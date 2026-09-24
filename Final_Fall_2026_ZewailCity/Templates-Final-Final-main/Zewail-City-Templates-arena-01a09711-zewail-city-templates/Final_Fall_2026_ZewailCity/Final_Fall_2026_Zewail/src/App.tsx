@@ -866,10 +866,12 @@ export default function App() {
           day: meeting.day,
           time: formatRange(meeting.start, meeting.end),
           room: meeting.room || 'Not published',
-          instructor:
-            entry.pairing.instructors?.[meeting.type] != null
-              ? entry.course.instructors[entry.pairing.instructors[meeting.type]!]?.name ?? entry.instructor.name
-              : entry.instructor.name,
+          instructor: (() => {
+            const instructorIndex = entry.pairing.instructors?.[meeting.type];
+            return instructorIndex != null
+              ? entry.course.instructors[instructorIndex]?.name ?? entry.instructor.name
+              : entry.instructor.name;
+          })(),
         })),
       })),
       availableCourses: courses.map((course) => ({
