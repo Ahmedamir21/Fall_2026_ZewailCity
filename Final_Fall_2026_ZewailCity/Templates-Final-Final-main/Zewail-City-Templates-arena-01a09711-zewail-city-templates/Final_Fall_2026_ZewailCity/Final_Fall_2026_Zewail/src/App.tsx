@@ -54,7 +54,7 @@ import { AboutPage } from './components/AboutPage';
 import { BestSchedule } from './components/BestSchedule';
 import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
-import { ScheduleAssistant, type AssistantProposal } from './components/ScheduleAssistant';
+import { ScheduleAssistant, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 
@@ -860,16 +860,17 @@ export default function App() {
     [yearId, requireComplete, typeFilter, courseFilter, preferences, instructorFilter],
   );
 
-  const applyAssistantProposal = useCallback(
-    (proposal: AssistantProposal): { ok: boolean; message: string } => {
+  const evaluateAssistantProposal = useCallback(
+    (proposal: AssistantProposal):
+      | { ok: true; next: PickState; nextMetrics: ComboMetrics; nextCredits: number }
+      | { ok: false; message: string } => {
       if (!major || !proposal.changes.length) {
         return { ok: false, message: 'There are no valid changes to apply.' };
       }
 
       const allowedCourseIds = new Set(allAvailableCourseIds(major));
-      const previousPicks = picksRef.current;
       const next: PickState = Object.fromEntries(
-        Object.entries(previousPicks).map(([courseId, pick]) => [courseId, { ...pick }]),
+        Object.entries(picksRef.current).map(([courseId, pick]) => [courseId, { ...pick }]),
       );
 
       for (const change of proposal.changes) {
@@ -895,7 +896,10 @@ export default function App() {
 
         const option = optionsFor(course, change.meetingType).find((item) => item.key === change.meetingId);
         if (!option) {
-          return { ok: false, message: `That ${change.meetingType.toLowerCase()} section is no longer available in the planner data.` };
+          return {
+            ok: false,
+            message: `That ${change.meetingType.toLowerCase()} section is no longer available in the planner data.`,
+          };
         }
 
         next[change.courseId] = {
@@ -907,13 +911,48 @@ export default function App() {
       const nextCourses = Object.keys(next)
         .map((courseId) => COURSE_BY_ID[courseId])
         .filter((course): course is Course => Boolean(course));
+      const nextDraft = draftMeetings(nextCourses, next);
+      const nextOverlaps = draftOverlaps(nextDraft);
 
-      const nextOverlaps = draftOverlaps(draftMeetings(nextCourses, next));
       if (nextOverlaps.length > 0) {
-        return { ok: false, message: 'I did not apply that proposal because it would create a timetable conflict.' };
+        return { ok: false, message: 'This proposal would create a timetable conflict, so it cannot be applied.' };
       }
 
-      setPicks(next);
+      return {
+        ok: true,
+        next,
+        nextMetrics: measureSchedule(nextDraft.map((item) => item.meeting)),
+        nextCredits: nextCourses.reduce((sum, course) => sum + (course.credits ?? 0), 0),
+      };
+    },
+    [major],
+  );
+
+  const previewAssistantProposal = useCallback(
+    (proposal: AssistantProposal): AssistantProposalPreview => {
+      const result = evaluateAssistantProposal(proposal);
+      if (!result.ok) return result;
+
+      return {
+        ok: true,
+        stats: {
+          campusDays: `${metrics.days} → ${result.nextMetrics.days}`,
+          gaps: `${formatDuration(metrics.gapMinutes)} → ${formatDuration(result.nextMetrics.gapMinutes)}`,
+          credits: `${totalCredits} → ${result.nextCredits}`,
+          conflicts: `${draftOverlaps(draft).length} → 0`,
+        },
+      };
+    },
+    [evaluateAssistantProposal, metrics, totalCredits, draft],
+  );
+
+  const applyAssistantProposal = useCallback(
+    (proposal: AssistantProposal): { ok: boolean; message: string } => {
+      const result = evaluateAssistantProposal(proposal);
+      if (!result.ok) return result;
+
+      const previousPicks = picksRef.current;
+      setPicks(result.next);
       setComboIndex(0);
       setBest(null);
 
@@ -933,7 +972,7 @@ export default function App() {
         message: `✓ Applied ${proposal.changes.length} validated change${proposal.changes.length === 1 ? '' : 's'}. You can undo them from the notification.`,
       };
     },
-    [major, showToast],
+    [evaluateAssistantProposal, showToast],
   );
 
   const assistantContext = useMemo<Record<string, unknown>>(
@@ -1725,7 +1764,11 @@ export default function App() {
         </div>
       )}
 
-      {major && yearPlan && !showAbout && <ScheduleAssistant context={assistantContext} onApplyProposal={applyAssistantProposal} />}
+      {major && yearPlan && !showAbout && <ScheduleAssistant
+        context={assistantContext}
+        onPreviewProposal={previewAssistantProposal}
+        onApplyProposal={applyAssistantProposal}
+      />}
 
       <CommandPalette
         open={commandOpen}
