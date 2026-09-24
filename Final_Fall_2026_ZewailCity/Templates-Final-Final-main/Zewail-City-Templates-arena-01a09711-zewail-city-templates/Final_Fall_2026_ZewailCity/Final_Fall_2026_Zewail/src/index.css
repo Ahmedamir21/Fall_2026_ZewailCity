@@ -482,6 +482,30 @@ body {
   color: var(--ink);
 }
 
+.course-group-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.course-group-toggle:hover {
+  border-color: var(--muted-2);
+  background: var(--surface-2);
+}
+.course-group-toggle:active {
+  transform: translateY(1px);
+}
+
 .command-palette {
   animation: commandIn 0.18s ease both;
 }
