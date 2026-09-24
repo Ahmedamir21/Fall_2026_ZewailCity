@@ -83,6 +83,16 @@ function Badges({ schedules, index }: { schedules: GeneratedSchedule[]; index: n
   );
 }
 
+function componentInstructorLabel(entry: GeneratedSchedule['perCourse'][number]): string {
+  const parts = entry.pairing.meetings.map((meeting) => {
+    const idx = entry.pairing.instructors?.[meeting.type];
+    const instructor = idx != null ? entry.course.instructors[idx] : entry.instructor;
+    const name = instructor?.unassigned ? 'Unassigned' : instructor?.name ?? entry.instructor.name;
+    return `${meeting.type}: ${name}`;
+  });
+  return Array.from(new Set(parts)).join(' · ');
+}
+
 export function CompareSchedules({ schedules, labels, onClose, onUse }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -196,7 +206,7 @@ export function CompareSchedules({ schedules, labels, onClose, onUse }: Props) {
                     <span className="mono font-bold" style={{ color: `var(--c${e.course.c})` }}>
                       {e.course.code}
                     </span>{' '}
-                    · {e.instructor.name}
+                    · {componentInstructorLabel(e)}
                     <span className="block" style={{ color: 'var(--muted-2)' }}>
                       {e.pairing.meetings.map((m) => `${m.type[0]}${m.sec} ${m.day} ${formatRange(m.start, m.end)}`).join(' · ')}
                     </span>
