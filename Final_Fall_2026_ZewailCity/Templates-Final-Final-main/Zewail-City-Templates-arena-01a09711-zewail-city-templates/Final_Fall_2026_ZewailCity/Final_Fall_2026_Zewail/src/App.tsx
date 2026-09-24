@@ -217,7 +217,7 @@ export default function App() {
     window.addEventListener('hashchange', onHashChange);
 
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, [showToast]);
+  }, []);
 
   const showToast = useCallback((next: ToastState) => {
     setToast(next);
@@ -565,7 +565,7 @@ export default function App() {
         return next;
       });
     }
-  }, []);
+  }, [showToast]);
 
   const clearOne = useCallback((courseId: string) => {
     setPicks((prev) => ({ ...prev, [courseId]: emptyPick() }));
