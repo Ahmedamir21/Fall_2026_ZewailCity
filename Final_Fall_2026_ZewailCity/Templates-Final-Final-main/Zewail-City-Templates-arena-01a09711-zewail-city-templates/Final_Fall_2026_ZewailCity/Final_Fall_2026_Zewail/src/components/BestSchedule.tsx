@@ -9,13 +9,14 @@ import {
   type BestScheduleReport,
   type GeneratedSchedule,
 } from '../lib/bestSchedule';
-import type { SchedulePreferences } from '../lib/preferences';
+import { withAssistantConstraints, type SchedulePreferences } from '../lib/preferences';
 import type { ShareExtras } from '../lib/share';
 import type { PlannerLocks } from '../lib/assistantControls';
 import { SchedulePreferencesPanel } from './SchedulePreferences';
 import { CompareSchedules } from './CompareSchedules';
 import { ShareSchedule } from './ShareSchedule';
 import { EmptyState } from './EmptyState';
+import { TERM_LABEL } from '../config/semester';
 
 interface Props {
   courses: Course[];
@@ -30,6 +31,7 @@ interface Props {
   onPreferencesChange: (next: SchedulePreferences) => void;
   onUse: (schedule: GeneratedSchedule) => void;
   locks?: PlannerLocks;
+  assistantConstraints?: string[];
 }
 
 function picksFromSchedule(schedule: GeneratedSchedule): PickState {
@@ -55,6 +57,7 @@ export function BestSchedule({
   onPreferencesChange,
   onUse,
   locks,
+  assistantConstraints = [],
 }: Props) {
   const [report, setReport] = useState<BestScheduleReport | null>(null);
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -67,7 +70,7 @@ export function BestSchedule({
   }, [courseKey]);
 
   const generate = (prefsOverride?: SchedulePreferences) => {
-    setReport(generateBestSchedules(courses, prefsOverride ?? preferences, picks, locks));
+    setReport(generateBestSchedules(courses, withAssistantConstraints(prefsOverride ?? preferences, assistantConstraints), picks, locks));
     setCompareIds([]);
   };
 
@@ -389,7 +392,7 @@ function ScheduleCard({
           picks={sharePicks}
           className="btn btn-tap"
           label="Share"
-          shareTitle={`My ${label} — Fall 2026`}
+          shareTitle={`My ${label} — ${TERM_LABEL}`}
           extras={extras}
         />
       </footer>

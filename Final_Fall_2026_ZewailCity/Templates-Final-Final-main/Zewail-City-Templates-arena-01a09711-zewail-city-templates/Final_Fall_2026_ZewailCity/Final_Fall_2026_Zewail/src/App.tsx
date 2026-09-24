@@ -58,6 +58,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
+import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -106,6 +107,12 @@ function trimFilterToMajor(
 }
 
 export default function App() {
+  useEffect(() => {
+    document.title = DOCUMENT_TITLE;
+    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (description) description.content = DOCUMENT_DESCRIPTION;
+  }, []);
+
   const [theme, setTheme] = useTheme();
 
   // Both sources are read exactly once. URL state always wins over Local Storage, so opening
@@ -222,7 +229,12 @@ export default function App() {
   const [assistantConstraints, setAssistantConstraints] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
-      const raw = window.localStorage.getItem('zc-assistant-constraints-v1');
+      const storageKey = `zc-assistant-constraints-v2:${SEMESTER_CONFIG.key}`;
+      const legacy =
+        SEMESTER_CONFIG.key === LEGACY_UNTAGGED_SEMESTER_KEY
+          ? window.localStorage.getItem('zc-assistant-constraints-v1')
+          : null;
+      const raw = window.localStorage.getItem(storageKey) ?? legacy;
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string').slice(0, 8) : [];
     } catch {
@@ -248,7 +260,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem('zc-assistant-constraints-v1', JSON.stringify(assistantConstraints.slice(0, 8)));
+      window.localStorage.setItem(`zc-assistant-constraints-v2:${SEMESTER_CONFIG.key}`, JSON.stringify(assistantConstraints.slice(0, 8)));
     } catch {
       // Persistence is best-effort.
     }
@@ -1194,7 +1206,7 @@ export default function App() {
 
   const assistantContext = useMemo<Record<string, unknown>>(
     () => ({
-      term: 'Fall 2026 · Main Session',
+      term: TERM_SESSION_LABEL,
       dataLastVerified: COURSE_DATA_LAST_VERIFIED,
       major: major ? { id: major.id, title: major.title, subtitle: major.subtitle } : null,
       year: yearPlan ? { id: yearPlan.id, label: yearPlan.label } : null,
@@ -1314,7 +1326,7 @@ export default function App() {
 
   const copySummary = useCallback(() => {
     const lines: string[] = [
-      'My Zewail City schedule — Fall 2026 (Main Session)',
+      `My Zewail City schedule — ${TERM_SESSION_PAREN_LABEL}`,
       '--------------------------------',
     ];
 
@@ -1372,7 +1384,7 @@ export default function App() {
               className="text-[10.5px] font-bold uppercase tracking-[0.09em]"
               style={{ color: 'var(--accent)' }}
             >
-              Fall 2026 · Main Session
+              {TERM_SESSION_LABEL}
             </p>
 
             <h1 className="mt-1 text-[20px] font-extrabold tracking-tight sm:text-[23px]">
@@ -1647,6 +1659,7 @@ export default function App() {
               onPreferencesChange={setPreferences}
               onUse={useGeneratedSchedule}
               locks={plannerLocks}
+              assistantConstraints={assistantConstraints}
             />
 
             <div className="grid gap-3 xl:grid-cols-[minmax(340px,420px)_minmax(0,1fr)]">
@@ -1902,7 +1915,7 @@ export default function App() {
           className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.14em]"
           style={{ color: 'var(--accent)' }}
         >
-          Directed by Ahmed Amir &amp; Youssef Taha (الريبات المشطشطين)
+          {CREATOR_CREDIT}
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { emptyPick, optionsFor, type PickState } from './picks';
 import type { MeetingType } from '../types';
 import { sanitizePreferences, type SchedulePreferences } from './preferences';
 import { isValidCourseFilter, isValidTypeFilter, isValidYearId } from './stateValidation';
+import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
 
 /**
  * Unified Local Storage store for everything that defines the user's current plan:
@@ -48,6 +49,7 @@ export function wouldExceedCap(picks: PickState, courseId: string, cap: CreditCa
 }
 
 export interface PersistedState {
+  semesterKey: string;
   majorId: string | null;
   /**
    * Selected year within the major ('y2' | 'y3' | 'y4'). Old saved state (pre-year schema)
@@ -78,6 +80,12 @@ export interface PersistedState {
 function validate(raw: unknown): PersistedState | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const r = raw as Record<string, unknown>;
+
+  const sourceSemesterKey =
+    typeof r.semesterKey === 'string'
+      ? r.semesterKey
+      : LEGACY_UNTAGGED_SEMESTER_KEY;
+  if (sourceSemesterKey !== SEMESTER_CONFIG.key) return null;
 
   const majorId = typeof r.majorId === 'string' && MAJOR_BY_ID[r.majorId] ? r.majorId : null;
   // Absent (old schema) or malformed year/cap fields fall back to safe defaults, never crash.
@@ -111,6 +119,7 @@ function validate(raw: unknown): PersistedState | null {
   }
 
   return {
+    semesterKey: SEMESTER_CONFIG.key,
     majorId,
     yearId,
     creditCap,
@@ -137,10 +146,10 @@ export function loadAppState(): PersistedState | null {
   }
 }
 
-export function saveAppState(state: Omit<PersistedState, 'savedAt'>): void {
+export function saveAppState(state: Omit<PersistedState, 'savedAt' | 'semesterKey'>): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, savedAt: Date.now() }));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, semesterKey: SEMESTER_CONFIG.key, savedAt: Date.now() }));
   } catch {
     /* storage full or blocked — persistence is best-effort, the app keeps working */
   }

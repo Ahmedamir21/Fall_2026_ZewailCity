@@ -1,4 +1,5 @@
 import { COURSE_DATA_LAST_VERIFIED } from '../data/meta';
+import { CREATOR_CREDIT, PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
 
 const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Fall_2026_ZewailCity';
 
@@ -22,19 +23,19 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
       <section className="panel p-5 sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
           <span className="pill" style={{ color: 'var(--accent)' }}>
-            Version 2.1
+            Version {SEMESTER_CONFIG.version}
           </span>
-          <span className="pill">Fall 2026 · Main Session</span>
+          <span className="pill">{TERM_SESSION_LABEL}</span>
         </div>
         <h1 className="mt-2 text-[21px] font-extrabold tracking-tight sm:text-[25px]">
-          Zewail City — Fall 2026 Schedule Builder
+          {PRODUCT_TITLE}
         </h1>
 
         <div className="mt-5 space-y-5">
           <div>
             <h2 className="text-[13.5px] font-bold tracking-tight">What is this?</h2>
             <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              This website helps Zewail City students build and organize their Fall 2026 course schedules. Pick a
+              This website helps Zewail City students build and organize their {TERM_LABEL} course schedules. Pick a
               major, tick the courses you're registering, and choose real lecture, lab and tutorial times — the
               planner checks for time conflicts exactly (a 2:00–2:59 session next to a 3:00–3:59 session is fine; two
               overlapping meetings never are), tracks credit hours and free time, and its Best Schedule search finds
@@ -81,7 +82,7 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
           <div>
             <h2 className="text-[13.5px] font-bold tracking-tight">Data</h2>
             <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Course, section, instructor, room and time information reflects the Fall 2026 course data used by this
+              Course, section, instructor, room and time information reflects the {TERM_LABEL} course data used by this
               project. The dataset was last manually verified against Self-Service on {COURSE_DATA_LAST_VERIFIED}.
               Sections with no confirmed instructor are shown exactly as published — nothing is invented.
               The dataset itself is never modified: hiding, filtering and conflict marking are all derived views that
@@ -105,11 +106,11 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
             <div>
               <h2 className="text-[13.5px] font-bold tracking-tight">Version</h2>
               <p className="mt-1 text-[13px]" style={{ color: 'var(--muted)' }}>
-                Version 2.1 — merged build: advanced Best-Schedule engine, live credits dashboard, instructor
+                Version {SEMESTER_CONFIG.version} — merged build: advanced Best-Schedule engine, live credits dashboard, instructor
                 filters, share links &amp; mobile upgrade. Built with React, Vite and Tailwind CSS.
               </p>
               <p className="mt-1 text-[13px]" style={{ color: 'var(--muted)' }}>
-                Directed by Ahmed Amir &amp; Youssef Taha (الريبات المشطشطين)
+                {CREATOR_CREDIT}
               </p>
             </div>
             <a

@@ -1,6 +1,7 @@
 import type { MeetingType, Pairing } from '../types';
 import type { Pick, PickState } from './picks';
 import { uid } from './picks';
+import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
 
 export type LockedComponents = Record<string, Partial<Record<MeetingType, boolean>>>;
 
@@ -35,8 +36,16 @@ export function lockedPickForCourse(
   const pick = picks[courseId];
   if (!pick) return {};
   const out: Partial<Pick> = {};
+  const courseLocked = isCourseLocked(locks, courseId);
+
   (['Lecture', 'Lab', 'Tutorial'] as MeetingType[]).forEach((kind) => {
-    if (isComponentLocked(locks, courseId, kind) && pick[kind]) out[kind] = pick[kind];
+    if (courseLocked) {
+      // A course lock means exactly "leave this course as-is", including
+      // components that are intentionally still empty.
+      out[kind] = pick[kind] ?? null;
+      return;
+    }
+    if (isComponentLocked(locks, courseId, kind)) out[kind] = pick[kind] ?? null;
   });
   return out;
 }
@@ -49,8 +58,10 @@ export function pairingMatchesLockedPick(pairing: Pairing, locked: Partial<Pick>
   };
 
   return (['Lecture', 'Lab', 'Tutorial'] as MeetingType[]).every((kind) => {
-    const expected = locked[kind];
-    return expected == null || actual[kind] === expected;
+    // Presence of the property is meaningful: null means "keep this
+    // component empty", while an absent property means "not locked".
+    if (!Object.prototype.hasOwnProperty.call(locked, kind)) return true;
+    return actual[kind] === (locked[kind] ?? null);
   });
 }
 
@@ -68,10 +79,18 @@ export function normalizeLocks(locks: PlannerLocks, picks: PickState): PlannerLo
   return { courseIds, components };
 }
 
+const LOCK_STORAGE_KEY = `zc-planner-locks-v2:${SEMESTER_CONFIG.key}`;
+const LEGACY_LOCK_STORAGE_KEY = 'zc-planner-locks-v1';
+
 export function loadPlannerLocks(): PlannerLocks {
   if (typeof window === 'undefined') return { courseIds: [], components: {} };
   try {
-    const raw = window.localStorage.getItem('zc-planner-locks-v1');
+    const current = window.localStorage.getItem(LOCK_STORAGE_KEY);
+    const legacy =
+      SEMESTER_CONFIG.key === LEGACY_UNTAGGED_SEMESTER_KEY
+        ? window.localStorage.getItem(LEGACY_LOCK_STORAGE_KEY)
+        : null;
+    const raw = current ?? legacy;
     if (!raw) return { courseIds: [], components: {} };
     const parsed = JSON.parse(raw);
     return {
@@ -90,7 +109,7 @@ export function loadPlannerLocks(): PlannerLocks {
 export function savePlannerLocks(locks: PlannerLocks): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem('zc-planner-locks-v1', JSON.stringify(locks));
+    window.localStorage.setItem(LOCK_STORAGE_KEY, JSON.stringify(locks));
   } catch {
     // Local persistence is best-effort; planner behavior still works in-memory.
   }

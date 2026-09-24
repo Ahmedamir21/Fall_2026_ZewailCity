@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buildShareUrl, type ShareExtras } from '../lib/share';
 import type { Course } from '../types';
 import type { PickState } from '../lib/picks';
+import { SHARE_TEXT, SHARE_TITLE } from '../config/semester';
 
 interface Props {
   majorId: string;
@@ -58,7 +59,7 @@ export function ShareSchedule({ majorId, courses, picks, disabled, className, la
   const nativeShare = async () => {
     if (!navigator.share) return;
     try {
-      await navigator.share({ title: shareTitle ?? 'My Fall 2026 schedule', text: 'Check out my Zewail City Fall 2026 schedule.', url });
+      await navigator.share({ title: shareTitle ?? SHARE_TITLE, text: SHARE_TEXT, url });
     } catch {
       /* user cancelled the native share sheet — nothing to do */
     }

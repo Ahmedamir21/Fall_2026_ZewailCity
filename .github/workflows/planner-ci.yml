@@ -2,7 +2,7 @@ name: Planner CI
 
 on:
   push:
-    branches: [add-year-1-courses]
+    branches: [add-year-1-courses, semester-ready-refactor]
   pull_request:
     branches: [add-year-1-courses]
   workflow_dispatch:
@@ -26,10 +26,16 @@ jobs:
           cache-dependency-path: Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Production build
         run: npm run build
+
+      - name: Data integrity tests
+        run: npm run test:data
 
       - name: Assistant feature tests
         run: npm run test:assistant
@@ -40,6 +46,5 @@ jobs:
       - name: UI tests
         run: npm run test:ui
 
-      - name: Legacy core harness
-        continue-on-error: true
+      - name: Core scheduler harness
         run: npm run test:harness

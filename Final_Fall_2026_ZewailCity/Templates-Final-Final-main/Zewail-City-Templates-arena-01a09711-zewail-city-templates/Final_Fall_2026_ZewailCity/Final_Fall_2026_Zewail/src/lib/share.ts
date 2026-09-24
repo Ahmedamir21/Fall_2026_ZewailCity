@@ -9,6 +9,7 @@ import {
   type SchedulePreferences,
 } from './preferences';
 import { isValidCourseFilter, isValidTypeFilter, isValidYearId, VALID_DAYS_SAFE } from './stateValidation';
+import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
 
 /** Query param used to carry an encoded schedule — kept short and URL-safe. */
 export const SCHEDULE_PARAM = 'schedule';
@@ -80,9 +81,9 @@ export function encodeSchedule(
     });
   }
 
-  // v4 adds the optional year id (`y`). The decoder tolerates both v3 (no year — defaults
-  // to the major's first year) and v4 payloads, so every old link keeps working.
-  const payload: Record<string, unknown> = { v: 4, m: majorId, r: rows };
+  // v5 adds the semester key (`t`) so a link can never be interpreted against
+  // another term's dataset. v3/v4 remain readable for Fall 2026 compatibility.
+  const payload: Record<string, unknown> = { v: 5, t: SEMESTER_CONFIG.key, m: majorId, r: rows };
   if (extras?.yearId && isValidYearId(extras.yearId)) payload.y = extras.yearId;
   if (inf.length) payload.inf = inf;
   if (extras?.requireComplete === false) payload.rc = 0;
@@ -111,6 +112,7 @@ export function decodeSchedule(param: string): DecodedSchedule | null {
   try {
     const parsed = JSON.parse(base64UrlDecode(param)) as {
       v?: number;
+      t?: unknown;
       m?: unknown;
       y?: unknown;
       r?: unknown;
@@ -121,6 +123,14 @@ export function decodeSchedule(param: string): DecodedSchedule | null {
       pr?: CompactPreferences;
     };
     if (!parsed || typeof parsed.m !== 'string' || !MAJOR_BY_ID[parsed.m] || !Array.isArray(parsed.r)) return null;
+
+    const sourceSemesterKey =
+      typeof parsed.t === 'string'
+        ? parsed.t
+        : parsed.v === 3 || parsed.v === 4 || parsed.v == null
+          ? LEGACY_UNTAGGED_SEMESTER_KEY
+          : null;
+    if (!sourceSemesterKey || sourceSemesterKey !== SEMESTER_CONFIG.key) return null;
 
     const picks: PickState = {};
     const instructorFilter: Record<string, number> = {};
@@ -157,7 +167,7 @@ export function decodeSchedule(param: string): DecodedSchedule | null {
 
     return {
       majorId: parsed.m,
-      // v3 links carry no `y`; invalid/unknown values are dropped rather than applied.
+      // v3/v4 links carry no semester key but are accepted only for their known legacy term.
       yearId: isValidYearId(parsed.y) ? parsed.y : undefined,
       picks,
       instructorFilter,

@@ -233,3 +233,115 @@ export function fromCompactPreferences(c: CompactPreferences | null | undefined)
     maxHoursHard: hardList.includes('mh'),
   });
 }
+
+
+/**
+ * Overlay the small set of reusable Assistant constraint chips onto the normal
+ * planner preferences. The base preferences are never mutated.
+ *
+ * Canonical labels intentionally stay human-readable so the same value can be
+ * shown as a removable chip in the UI and interpreted deterministically here.
+ */
+export function withAssistantConstraints(
+  base: SchedulePreferences,
+  constraints: string[] | null | undefined,
+): SchedulePreferences {
+  if (!constraints?.length) return base;
+
+  const next: SchedulePreferences = {
+    ...base,
+    goals: { ...base.goals },
+    preferredDays: [...base.preferredDays],
+    keepFreeDays: [...base.keepFreeDays],
+  };
+
+  const dayMap: Record<string, Day> = {
+    sunday: 'Sun',
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    sun: 'Sun',
+    mon: 'Mon',
+    tue: 'Tue',
+    wed: 'Wed',
+    thu: 'Thu',
+  };
+
+  const parseClock = (hourRaw: string, minuteRaw?: string, ampmRaw?: string): number | null => {
+    let hour = Number(hourRaw);
+    const minute = minuteRaw ? Number(minuteRaw) : 0;
+    if (!Number.isInteger(hour) || !Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+    const ampm = ampmRaw?.toLowerCase();
+    if (ampm) {
+      if (hour < 1 || hour > 12) return null;
+      if (ampm === 'pm' && hour !== 12) hour += 12;
+      if (ampm === 'am' && hour === 12) hour = 0;
+    } else if (hour < 0 || hour > 23) {
+      return null;
+    }
+    return hour * 60 + minute;
+  };
+
+  constraints.forEach((raw) => {
+    const value = raw.trim();
+    const lower = value.toLowerCase();
+
+    // "Avoid 8 AM" means no meeting may start before 9:00 AM.
+    const avoidHour = lower.match(/^avoid\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+    if (avoidHour) {
+      const at = parseClock(avoidHour[1], avoidHour[2], avoidHour[3]);
+      if (at != null) {
+        next.noBefore = Math.max(next.noBefore ?? 0, at + 60);
+        next.noBeforeStrict = true;
+      }
+      return;
+    }
+
+    const keepFree = lower.match(/^keep\s+(sunday|monday|tuesday|wednesday|thursday|sun|mon|tue|wed|thu)\s+free$/i);
+    if (keepFree) {
+      const day = dayMap[keepFree[1].toLowerCase()];
+      if (day && !next.keepFreeDays.includes(day)) next.keepFreeDays.push(day);
+      next.keepFreeDaysHard = true;
+      return;
+    }
+
+    const finish = lower.match(/^(?:finish\s+(?:by|before)|no\s+classes\s+after)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+    if (finish) {
+      const at = parseClock(finish[1], finish[2], finish[3]);
+      if (at != null) {
+        next.noAfter = next.noAfter == null ? at : Math.min(next.noAfter, at);
+        next.noAfterStrict = true;
+      }
+      return;
+    }
+
+    const start = lower.match(/^(?:start\s+after|no\s+classes\s+before)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+    if (start) {
+      const at = parseClock(start[1], start[2], start[3]);
+      if (at != null) {
+        next.noBefore = Math.max(next.noBefore ?? 0, at);
+        next.noBeforeStrict = true;
+      }
+      return;
+    }
+
+    const campusDays = lower.match(/^max\s+([2-5])\s+campus\s+days$/i);
+    if (campusDays) {
+      next.preferredCampusDays = Number(campusDays[1]);
+      next.campusDaysHard = true;
+      return;
+    }
+
+    const maxHours = lower.match(/^max\s+(\d+(?:\.\d+)?)\s+hours(?:\/day|\s+per\s+day)$/i);
+    if (maxHours) {
+      const hours = Number(maxHours[1]);
+      if (Number.isFinite(hours) && hours >= 1 && hours <= 12) {
+        next.maxHoursPerDay = hours;
+        next.maxHoursHard = true;
+      }
+    }
+  });
+
+  return sanitizePreferences(next);
+}
