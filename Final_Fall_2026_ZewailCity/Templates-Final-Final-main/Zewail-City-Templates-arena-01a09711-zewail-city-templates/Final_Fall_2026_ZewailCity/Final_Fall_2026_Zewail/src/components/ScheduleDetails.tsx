@@ -60,17 +60,11 @@ export function ScheduleDetails({
                 <span className="pill" style={{ flex: 'none' }}>
                   Instructor
                 </span>
-                {instructorLabels(entry).length > 1 ? (
-                  instructorLabels(entry).map((l) => (
-                    <span key={l.kind} style={{ color: l.unassigned ? 'var(--warn)' : 'var(--ink)' }}>
-                      {l.kind}: {l.name}
-                    </span>
-                  ))
-                ) : (
-                  <span style={{ color: entry.instructor.unassigned ? 'var(--warn)' : 'var(--ink)' }}>
-                    {entry.instructor.name}
+                {instructorLabels(entry).map((l) => (
+                  <span key={l.kind} style={{ color: l.unassigned ? 'var(--warn)' : 'var(--ink)' }}>
+                    {instructorLabels(entry).length > 1 ? `${l.kind}: ` : ''}{l.name}
                   </span>
-                )}
+                ))}
               </p>
 
               <table className="mt-2.5 w-full border-collapse text-left">
