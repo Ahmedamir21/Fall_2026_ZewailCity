@@ -2,6 +2,8 @@ import type { ComboMetrics, Course, Day, Instructor, Meeting, Pairing } from '..
 import { buildCoursePairings, measureSchedule } from './scheduler';
 import { DAYS, formatRange, overlaps, sortMeetings, to12h } from './time';
 import type { SchedulePreferences } from './preferences';
+import type { PickState } from './picks';
+import { lockedPickForCourse, pairingMatchesLockedPick, type PlannerLocks } from './assistantControls';
 
 /**
  * Safety cap on search-tree nodes visited. This bounds worst-case work independently of
@@ -101,16 +103,19 @@ function pairingDayMinutes(pairing: Pairing): Map<Day, number> {
  *
  * Never invents a pairing — only combinations the published section data actually allows.
  */
-function buildCandidates(course: Course, prefs: SchedulePreferences) {
+function buildCandidates(course: Course, prefs: SchedulePreferences, picks?: PickState, locks?: PlannerLocks) {
   const list: { instructorIdx: number; instructor: Instructor; pairing: Pairing }[] = [];
 
   const restrictDays = prefs.preferredDaysHard && prefs.preferredDays.length > 0;
   const forbidDays = prefs.keepFreeDaysHard && prefs.keepFreeDays.length > 0;
   const limitMin = prefs.maxHoursHard && prefs.maxHoursPerDay != null ? prefs.maxHoursPerDay * 60 : null;
 
-  // Cross-instructor pairing: the only exclusions here are genuine time conflicts
-  // (applied inside buildCoursePairings) and the student's HARD preference rules.
+  const locked = picks && locks ? lockedPickForCourse(picks, locks, course.id) : {};
+
+  // Cross-instructor pairing: the only exclusions here are genuine time conflicts,
+  // hard preference rules, and explicit student locks.
   buildCoursePairings(course).forEach((pairing) => {
+    if (!pairingMatchesLockedPick(pairing, locked)) return;
     if (!pairing.meetings.every((m) => withinHardRange(m, prefs))) return;
     if (restrictDays && pairing.meetings.some((m) => !prefs.preferredDays.includes(m.day))) return;
     if (forbidDays && pairing.meetings.some((m) => prefs.keepFreeDays.includes(m.day))) return;
@@ -301,7 +306,12 @@ function hardConstraintLabels(prefs: SchedulePreferences): { key: string; label:
  *  5. A node budget caps total work; hitting it yields the best-found-so-far and is reported
  *     as truncated rather than pretending the search was exhaustive.
  */
-export function generateBestSchedules(courses: Course[], prefs: SchedulePreferences): BestScheduleReport {
+export function generateBestSchedules(
+  courses: Course[],
+  prefs: SchedulePreferences,
+  picks?: PickState,
+  locks?: PlannerLocks,
+): BestScheduleReport {
   if (courses.length === 0) {
     return {
       schedules: [],
@@ -336,7 +346,7 @@ export function generateBestSchedules(courses: Course[], prefs: SchedulePreferen
   const blockedByHard: { courseId: string; code: string }[] = [];
   const perCourseCandidates = fixed.map((course) => {
     const all = countAllPairings(course);
-    const viable = buildCandidates(course, prefs);
+    const viable = buildCandidates(course, prefs, picks, locks);
     if (viable.length === 0) {
       // Distinguish "publishes nothing schedulable" from "hard constraints excluded everything".
       if (all === 0) noSections.push({ courseId: course.id, code: course.code });
