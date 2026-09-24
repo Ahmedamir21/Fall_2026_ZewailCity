@@ -32,3 +32,5 @@ export const SHARE_TEXT = `Check out my ${SEMESTER_CONFIG.institution} ${TERM_LA
 
 export const DOCUMENT_TITLE = PRODUCT_TITLE;
 export const DOCUMENT_DESCRIPTION = `${PRODUCT_TITLE}. Choose your major, pick courses and sections, catch time conflicts instantly, and share your finished schedule with a link.`;
+
+export const CREATOR_CREDIT = 'Directed by Ahmed Amir & Youssef Taha (الريبات المشطشطين)';
