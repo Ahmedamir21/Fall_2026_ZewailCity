@@ -55,6 +55,7 @@ export function CoursePicker({
   onHoverCourse,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [schOpen, setSchOpen] = useState(true);
   const takenCourses = courses.filter((c) => picks[c.id]);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const visibleCourses = normalizedSearch
@@ -64,6 +65,34 @@ export function CoursePicker({
           c.name.toLowerCase().includes(normalizedSearch),
       )
     : courses;
+
+  const currentYearCourses = visibleCourses.filter(
+    (c) => !c.code.startsWith('SCH ') && !yearBadges?.[c.id],
+  );
+  const schCourses = visibleCourses.filter((c) => c.code.startsWith('SCH '));
+  const otherYearCourses = visibleCourses.filter(
+    (c) => !c.code.startsWith('SCH ') && !!yearBadges?.[c.id],
+  );
+  const selectedSchCount = schCourses.filter((c) => !!picks[c.id]).length;
+
+  const renderCourse = (course: Course) => (
+    <CourseCard
+      key={course.id}
+      course={course}
+      pick={picks[course.id]}
+      takenCourses={takenCourses}
+      picks={picks}
+      pinnedInstructorIdx={instructorFilter[course.id] ?? null}
+      onInstructorFilter={(idx) => onInstructorFilter(course.id, idx)}
+      preferences={preferences}
+      onChange={(next) => onChange(course.id, next)}
+      onToggle={(taking) => onToggle(course.id, taking)}
+      onClearOne={() => onClearOne(course.id)}
+      yearBadge={yearBadges?.[course.id]}
+      shakeNonce={shake?.courseId === course.id ? shake.nonce : null}
+      onHoverCourse={onHoverCourse}
+    />
+  );
 
   const overallSummary = mergeHiddenSummaries(
     takenCourses.flatMap((course) =>
@@ -159,25 +188,54 @@ export function CoursePicker({
         </p>
       )}
 
-      <div className="mt-4 space-y-3">
-        {visibleCourses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            pick={picks[course.id]}
-            takenCourses={takenCourses}
-            picks={picks}
-            pinnedInstructorIdx={instructorFilter[course.id] ?? null}
-            onInstructorFilter={(idx) => onInstructorFilter(course.id, idx)}
-            preferences={preferences}
-            onChange={(next) => onChange(course.id, next)}
-            onToggle={(taking) => onToggle(course.id, taking)}
-            onClearOne={() => onClearOne(course.id)}
-            yearBadge={yearBadges?.[course.id]}
-            shakeNonce={shake?.courseId === course.id ? shake.nonce : null}
-            onHoverCourse={onHoverCourse}
-          />
-        ))}
+      <div className="mt-4 space-y-4">
+        {currentYearCourses.length > 0 && (
+          <section className="space-y-2.5">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div>
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--muted-2)' }}>
+                  Current year courses
+                </h3>
+                <p className="text-[10.5px]" style={{ color: 'var(--muted-2)' }}>
+                  {currentYearCourses.length} course{currentYearCourses.length === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
+            {currentYearCourses.map(renderCourse)}
+          </section>
+        )}
+
+        {schCourses.length > 0 && (
+          <section className="space-y-2.5">
+            <button
+              type="button"
+              className="course-group-toggle"
+              onClick={() => setSchOpen((v) => !v)}
+              aria-expanded={normalizedSearch ? true : schOpen}
+            >
+              <span className="min-w-0 text-left">
+                <span className="block text-[11px] font-bold uppercase tracking-[0.08em]">SCH electives</span>
+                <span className="block text-[10.5px] font-medium" style={{ color: 'var(--muted-2)' }}>
+                  {schCourses.length} available{selectedSchCount > 0 ? ` · ${selectedSchCount} selected` : ''}
+                </span>
+              </span>
+              <span className="pill">{normalizedSearch || schOpen ? 'Hide' : 'Show'}</span>
+            </button>
+            {(normalizedSearch || schOpen) && schCourses.map(renderCourse)}
+          </section>
+        )}
+
+        {otherYearCourses.length > 0 && (
+          <section className="space-y-2.5">
+            <div className="px-1">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--muted-2)' }}>
+                Added from other years
+              </h3>
+            </div>
+            {otherYearCourses.map(renderCourse)}
+          </section>
+        )}
+
         {visibleCourses.length === 0 && (
           <div className="panel-soft p-5 text-center">
             <p className="text-[12.5px] font-semibold">No courses match “{searchQuery}”.</p>
