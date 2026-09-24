@@ -232,6 +232,54 @@ export function SchedulePreferencesPanel({ open, onClose, preferences, onChange,
           </div>
         </section>
 
+        {/* Campus days */}
+        <section className="mt-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: 'var(--muted-2)' }}>
+            Campus days per week
+          </h3>
+          <p className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-2)' }}>
+            Choose how compact you want your week. By default this is a preference, not a requirement.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {[null, 2, 3, 4, 5].map((days) => {
+              const active = draft.preferredCampusDays === days;
+              return (
+                <button
+                  key={days ?? 'any'}
+                  type="button"
+                  className="btn btn-tap px-3 py-1.5 text-[11.5px]"
+                  aria-pressed={active}
+                  onClick={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      preferredCampusDays: days,
+                      campusDaysHard: days == null ? false : d.campusDaysHard,
+                    }))
+                  }
+                  style={
+                    active
+                      ? {
+                          borderColor: 'var(--accent)',
+                          color: 'var(--accent)',
+                          background: 'color-mix(in srgb, var(--accent) 10%, var(--surface))',
+                        }
+                      : undefined
+                  }
+                >
+                  {days == null ? 'Any' : `${days} days`}
+                </button>
+              );
+            })}
+          </div>
+          <HardToggle
+            label="Treat as a maximum"
+            hint="Reject schedules that need more campus days than this."
+            checked={draft.campusDaysHard}
+            disabled={draft.preferredCampusDays == null}
+            onChange={(v) => setDraft((d) => ({ ...d, campusDaysHard: v }))}
+          />
+        </section>
+
         {/* Max hours per day — a single press opens the choices; selecting is one click.
             The list is NOT permanently visible (the whole row of hour chips was replaced
             by this dropdown), but it is a custom button+menu, never a native <select>
