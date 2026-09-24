@@ -22,7 +22,7 @@ export const SEMESTER_CONFIG = {
   dataLastVerified: '2026-09-24',
   calendarStartDate: '2026-09-20',
   calendarEndDate: '2026-12-31',
-  publicHostLabel: 'planora.vercel.app',
+  publicHostLabel: 'planora-planner.vercel.app',
 } as const;
 
 export const TERM_LABEL = `${SEMESTER_CONFIG.term} ${SEMESTER_CONFIG.year}`;
