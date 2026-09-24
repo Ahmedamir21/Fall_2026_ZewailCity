@@ -216,7 +216,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
           day: 'Wed',
           start: 10 * 60,
           end: 12 * 60,
-          room: 'F25-B4',
+          room: 'G011-B',
         },
         {
           type: 'Lecture',
@@ -266,55 +266,55 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     ],
   },
 
-  {
-    id: 'sch263',
-    code: 'SCH 263',
-    name: 'Engineering Ethics and Safety',
-    c: 7,
-    credits: 2,
-    instructors: [
-      {
-        name: 'Not Assigned',
-        lectures: [
-          {
-            type: 'Lecture',
-            sec: '01',
-            day: 'Mon',
-            start: 8 * 60,
-            end: 10 * 60,
-            room: 'G008-B',
-          },
-        ],
-        labs: [],
-        tutorials: [],
-      },
-    ],
-  },
+ {
+  id: 'sch263',
+  code: 'SCH 263',
+  name: 'Engineering Ethics and Safety',
+  c: 7,
+  credits: 2,
+  instructors: [
+    {
+      name: 'Ahmed Fahmy',
+      lectures: [
+        {
+          type: 'Lecture',
+          sec: '01',
+          day: 'Mon',
+          start: 8 * 60,
+          end: 10 * 60,
+          room: 'F010-D',
+        },
+      ],
+      labs: [],
+      tutorials: [],
+    },
+  ],
+},
 
   {
-    id: 'sch264',
-    code: 'SCH 264',
-    name: 'Intro to Entrepreneurship & Small Mangm',
-    c: 7,
-    credits: 2,
-    instructors: [
-      {
-        name: 'Sherif Hamdy ElGohary',
-        lectures: [
-          {
-            type: 'Lecture',
-            sec: '01',
-            day: 'Tue',
-            start: 12 * 60,
-            end: 14 * 60,
-            room: 'G018-B',
-          },
-        ],
-        labs: [],
-        tutorials: [],
-      },
-    ],
-  },
+  id: 'sch264',
+  code: 'SCH 264',
+  name: 'Intro to Entrepreneurship & Small Mangm',
+  c: 7,
+  credits: 2,
+  instructors: [
+    {
+      name: 'Sherif Hamdy ElGohary',
+      lectures: [
+        {
+          type: 'Lecture',
+          sec: '01',
+          day: 'Tue',
+          start: 12 * 60,
+          end: 14 * 60,
+          room: 'F012-D',
+        },
+      ],
+      labs: [],
+      tutorials: [],
+    },
+  ],
+},
 
   {
     id: 'sch273',
@@ -341,7 +341,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
     ],
   },
 
-  {
+   {
     id: 'sch277',
     code: 'SCH 277',
     name: 'Positive Psychology',
@@ -357,7 +357,7 @@ export const SCH_ELECTIVE_COURSES: Course[] = [
             day: 'Tue',
             start: 12 * 60,
             end: 14 * 60,
-            room: 'G008-B',
+            room: 'F004-D',
           },
         ],
         labs: [],
