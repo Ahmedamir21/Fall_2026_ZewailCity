@@ -1,6 +1,6 @@
 import type { TimetableEvent } from './Timetable';
 import { DAY_LABEL, DAYS, formatRange } from '../lib/time';
-import { SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_LABEL } from '../config/semester';
+import { CREATOR_CREDIT, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_LABEL } from '../config/semester';
 
 function cssVar(name: string, fallback: string): string {
   if (typeof window === 'undefined') return fallback;
@@ -143,7 +143,10 @@ export function ShareScheduleImage({
 
     ctx.fillStyle = muted;
     ctx.font = '500 16px Inter, system-ui, sans-serif';
-    ctx.fillText('Generated from the student planner · Verify final registration details on Self-Service.', margin, height - 34);
+    ctx.fillText('Generated from the student planner · Verify final registration details on Self-Service.', margin, height - 48);
+    ctx.textAlign = 'right';
+    ctx.fillText(CREATOR_CREDIT, width - margin, height - 24);
+    ctx.textAlign = 'left';
 
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 0.96));
     if (!blob) return;
