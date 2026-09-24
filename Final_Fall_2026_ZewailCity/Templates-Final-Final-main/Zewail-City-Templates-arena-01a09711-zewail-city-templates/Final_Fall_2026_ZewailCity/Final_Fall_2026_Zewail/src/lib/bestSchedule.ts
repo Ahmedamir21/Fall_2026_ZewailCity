@@ -510,9 +510,12 @@ export function generateBestSchedules(courses: Course[], prefs: SchedulePreferen
 
   walk(0, []);
 
-  // Hard constraints (days / time range / max-hours) were enforced during candidate building
-  // and search, so every retained schedule satisfies all of them.
+  // Hard constraints are enforced during candidate building and search, so every retained
+  // schedule satisfies all of them. A global hard rule (notably maximum campus days) can
+  // still make the cross-course search empty even though each course has viable sections.
   const schedules = pool.slice(0, RESULT_LIMIT);
+  const hardActive = labels.length > 0;
+  const globalHardImpossible = totalValid === 0 && hardActive;
 
   return {
     schedules,
@@ -521,8 +524,8 @@ export function generateBestSchedules(courses: Course[], prefs: SchedulePreferen
     earlyExit,
     noSections: [],
     blockedByHard: [],
-    unsatisfiableHard: [],
-    hardFeasible: true,
+    unsatisfiableHard: globalHardImpossible ? labels.map((l) => l.label) : [],
+    hardFeasible: !globalHardImpossible,
   };
 }
 
