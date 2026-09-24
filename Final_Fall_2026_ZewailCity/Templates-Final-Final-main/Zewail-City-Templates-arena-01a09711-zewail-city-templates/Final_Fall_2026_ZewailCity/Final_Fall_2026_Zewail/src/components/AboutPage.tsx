@@ -95,7 +95,7 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
             <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               Everything stays in your browser. Your plan is saved in Local Storage on this device only, and Share
               links carry opaque course/section ids and your preference flags — never names, emails, or any personal
-              information. The credit-limit note stores only the cap you picked (a single number, 13/18/21) as an app
+              information. The credit-limit note stores only the cap you picked (a single number, 13 or 18) as an app
               setting on this device — no GPA or academic record is ever asked for, stored, or transmitted. Open a
               saved or shared URL on the same browser to restore exactly where you left off.
             </p>
