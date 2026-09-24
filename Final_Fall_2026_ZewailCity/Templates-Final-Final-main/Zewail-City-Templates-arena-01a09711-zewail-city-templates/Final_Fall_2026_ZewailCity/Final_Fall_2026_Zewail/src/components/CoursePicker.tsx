@@ -337,6 +337,12 @@ function CourseCard({
       data-state={!taking ? 'idle' : instructor ? 'selected' : 'pending'}
       onMouseEnter={() => onHoverCourse?.(course.id)}
       onMouseLeave={() => onHoverCourse?.(null)}
+      onPointerMove={(e) => {
+        if (e.pointerType !== 'mouse') return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--spot-x', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--spot-y', `${e.clientY - rect.top}px`);
+      }}
       onFocusCapture={() => onHoverCourse?.(course.id)}
       onBlurCapture={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHoverCourse?.(null);
