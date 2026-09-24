@@ -290,6 +290,8 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
                             ? `Add ${change.courseId}`
                             : `Remove ${change.courseId}`
                       ),
+                      before: undefined,
+                      after: undefined,
                       reason: change.reason,
                     }))).map((change, index) => (
                       <div key={index} className="assistant-proposal-row assistant-proposal-diff">
