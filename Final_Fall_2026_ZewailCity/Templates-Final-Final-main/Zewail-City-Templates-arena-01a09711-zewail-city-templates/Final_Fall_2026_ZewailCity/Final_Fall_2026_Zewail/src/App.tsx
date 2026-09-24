@@ -33,6 +33,8 @@ import {
 import type { ComboMetrics, Course, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './lib/share';
+import { downloadCalendarIcs } from './lib/calendar';
+import { copyTextToClipboard, courseIssueText, generalIssueText } from './lib/reportIssue';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
 import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
@@ -57,6 +59,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
+import { InstallAppButton } from './components/InstallAppButton';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
@@ -279,6 +282,28 @@ export default function App() {
     if (toastTimer.current != null) window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), 4500);
   }, []);
+
+  const reportCourseIssue = useCallback(async (courseId: string) => {
+    const course = COURSE_BY_ID[courseId];
+    if (!course) return;
+    const copied = await copyTextToClipboard(courseIssueText(course, picksRef.current[courseId]));
+    showToast({
+      tone: copied ? 'default' : 'warning',
+      message: copied
+        ? `Report template copied for ${course.code}. Paste it in the group and describe what is wrong.`
+        : 'Could not copy the report automatically. Try again from another browser.',
+    });
+  }, [showToast]);
+
+  const reportGeneralIssue = useCallback(async () => {
+    const copied = await copyTextToClipboard(generalIssueText());
+    showToast({
+      tone: copied ? 'default' : 'warning',
+      message: copied
+        ? 'Data issue template copied. Fill the missing details and send it to us.'
+        : 'Could not copy the report automatically. Try again from another browser.',
+    });
+  }, [showToast]);
 
   useEffect(() => {
     const onCommandKey = (e: KeyboardEvent) => {
@@ -1680,6 +1705,7 @@ export default function App() {
                 locks={plannerLocks}
                 onToggleCourseLock={toggleCourseLock}
                 onToggleComponentLock={toggleComponentLock}
+                onReportIssue={reportCourseIssue}
               />
 
               <div className="space-y-3">
@@ -1845,6 +1871,18 @@ export default function App() {
                   <button
                     type="button"
                     className="btn btn-tap"
+                    onClick={() => downloadCalendarIcs(draft)}
+                    disabled={!canExport}
+                    title="Download a weekly .ics calendar for Google Calendar, Apple Calendar or Outlook"
+                  >
+                    📅 Export Calendar (.ics)
+                  </button>
+
+                  <InstallAppButton />
+
+                  <button
+                    type="button"
+                    className="btn btn-tap"
                     onClick={() => window.print()}
                     disabled={!canExport}
                   >
@@ -1908,6 +1946,27 @@ export default function App() {
             onClick={showAbout ? closeAbout : openAbout}
           >
             About &amp; GitHub
+          </button>
+
+          <span aria-hidden>·</span>
+
+          <span>
+            Course data verified:{' '}
+            {new Date(`${COURSE_DATA_LAST_VERIFIED}T12:00:00`).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </span>
+
+          <span aria-hidden>·</span>
+
+          <button
+            type="button"
+            className="underline decoration-dotted underline-offset-2"
+            onClick={reportGeneralIssue}
+          >
+            Report an issue
           </button>
         </footer>
 
