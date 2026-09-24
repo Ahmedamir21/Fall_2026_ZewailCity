@@ -598,8 +598,28 @@ body {
 
 .course-card {
   transform: translateZ(0);
+  isolation: isolate;
 }
 @media (hover: hover) and (pointer: fine) {
+  .course-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    background:
+      radial-gradient(
+        260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+        color-mix(in srgb, var(--accent) 7%, transparent),
+        transparent 70%
+      );
+    transition: opacity 0.18s ease;
+  }
+  .course-card:hover::before {
+    opacity: 1;
+  }
   .course-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 14px 34px -28px rgba(0, 0, 0, 0.8);
