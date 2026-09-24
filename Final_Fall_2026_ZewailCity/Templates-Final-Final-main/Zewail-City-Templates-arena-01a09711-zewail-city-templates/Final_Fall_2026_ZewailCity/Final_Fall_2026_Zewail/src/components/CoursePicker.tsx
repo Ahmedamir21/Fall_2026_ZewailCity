@@ -38,6 +38,7 @@ interface Props {
   locks: PlannerLocks;
   onToggleCourseLock: (courseId: string) => void;
   onToggleComponentLock: (courseId: string, kind: MeetingType) => void;
+  onReportIssue: (courseId: string) => void;
 }
 
 const KIND_ORDER: MeetingType[] = ['Lecture', 'Lab', 'Tutorial'];
@@ -60,6 +61,7 @@ export function CoursePicker({
   locks,
   onToggleCourseLock,
   onToggleComponentLock,
+  onReportIssue,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [schOpen, setSchOpen] = useState(true);
@@ -101,6 +103,7 @@ export function CoursePicker({
       locks={locks}
       onToggleCourseLock={() => onToggleCourseLock(course.id)}
       onToggleComponentLock={(kind) => onToggleComponentLock(course.id, kind)}
+      onReportIssue={() => onReportIssue(course.id)}
     />
   );
 
@@ -276,6 +279,7 @@ function CourseCard({
   locks,
   onToggleCourseLock,
   onToggleComponentLock,
+  onReportIssue,
 }: {
   course: Course;
   pick: Pick | undefined;
@@ -295,6 +299,7 @@ function CourseCard({
   locks: PlannerLocks;
   onToggleCourseLock: () => void;
   onToggleComponentLock: (kind: MeetingType) => void;
+  onReportIssue: () => void;
 }) {
   const taking = !!pick;
   const courseLocked = isCourseLocked(locks, course.id);
@@ -415,28 +420,38 @@ function CourseCard({
             {course.name}
           </p>
         </label>
-        {taking && (
-          <div className="flex flex-none items-center gap-1.5">
-            <button
-              type="button"
-              className="btn btn-tap px-2.5 py-1.5 text-[11px]"
-              onClick={onToggleCourseLock}
-              aria-pressed={courseLocked}
-              title={courseLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
-              style={courseLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
-            >
-              {courseLocked ? '🔒 Locked' : '🔓 Lock'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-tap px-2.5 py-1.5 text-[11px]"
-              onClick={onClearOne}
-              title="Clear this course's time choices"
-            >
-              Clear
-            </button>
-          </div>
-        )}
+        <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
+          <button
+            type="button"
+            className="btn btn-tap px-2.5 py-1.5 text-[11px]"
+            onClick={onReportIssue}
+            title="Copy a ready-to-send data issue report for this course"
+          >
+            ⚑ Report
+          </button>
+          {taking && (
+            <>
+              <button
+                type="button"
+                className="btn btn-tap px-2.5 py-1.5 text-[11px]"
+                onClick={onToggleCourseLock}
+                aria-pressed={courseLocked}
+                title={courseLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
+                style={courseLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
+              >
+                {courseLocked ? '🔒 Locked' : '🔓 Lock'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-tap px-2.5 py-1.5 text-[11px]"
+                onClick={onClearOne}
+                title="Clear this course's time choices"
+              >
+                Clear
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
       {taking && noSchedule && (
