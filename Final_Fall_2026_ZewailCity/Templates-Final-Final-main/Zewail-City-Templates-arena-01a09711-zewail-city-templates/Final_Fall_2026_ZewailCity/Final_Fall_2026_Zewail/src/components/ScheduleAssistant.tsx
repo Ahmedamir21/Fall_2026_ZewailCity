@@ -35,6 +35,12 @@ export interface AssistantProposal {
   changes: AssistantProposalChange[];
 }
 
+export interface AssistantLockAction {
+  action: 'lock_course' | 'unlock_course' | 'lock_component' | 'unlock_component';
+  courseId: string;
+  meetingType?: MeetingType;
+}
+
 export interface AssistantProposalPreview {
   ok: boolean;
   message?: string;
@@ -63,6 +69,7 @@ interface Props {
   constraints?: string[];
   onAddConstraints?: (constraints: string[]) => void;
   onRemoveConstraint?: (constraint: string) => void;
+  onLockActions?: (actions: AssistantLockAction[]) => void;
 }
 
 const QUICK_PROMPTS = [
@@ -73,7 +80,7 @@ const QUICK_PROMPTS = [
   'Suggest another course',
 ];
 
-export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal, constraints = [], onAddConstraints, onRemoveConstraint }: Props) {
+export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal, constraints = [], onAddConstraints, onRemoveConstraint, onLockActions }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [input, setInput] = useState('');
@@ -120,7 +127,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
       });
 
       const raw = await response.text();
-      let data: { text?: string; error?: string; proposal?: AssistantProposal | null; constraintsAdd?: string[] } = {};
+      let data: { text?: string; error?: string; proposal?: AssistantProposal | null; constraintsAdd?: string[]; lockActions?: AssistantLockAction[] } = {};
 
       try {
         data = raw ? JSON.parse(raw) : {};
@@ -138,6 +145,9 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
       setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
       if (Array.isArray(data.constraintsAdd) && data.constraintsAdd.length > 0) {
         onAddConstraints?.(data.constraintsAdd);
+      }
+      if (Array.isArray(data.lockActions) && data.lockActions.length > 0) {
+        onLockActions?.(data.lockActions);
       }
 
       if (
