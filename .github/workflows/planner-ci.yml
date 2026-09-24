@@ -1,0 +1,41 @@
+name: Planner CI
+
+on:
+  push:
+    branches: [add-year-1-courses]
+  pull_request:
+    branches: [add-year-1-courses]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Core scheduling tests
+        run: npm run test:harness
+
+      - name: SSR smoke test
+        run: npm run test:ssr
+
+      - name: UI tests
+        run: npm run test:ui
+
+      - name: Production build
+        run: npm run build
