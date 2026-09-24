@@ -30,6 +30,12 @@ export interface SchedulePreferences {
   noAfterStrict: boolean;
   /** Maximum class hours in a single day. */
   maxHoursPerDay: number | null;
+  /**
+   * Desired number of campus days per week (2–5). Soft by default: ranking prefers
+   * schedules closest to this number. When campusDaysHard is on, it becomes a maximum.
+   */
+  preferredCampusDays: number | null;
+  campusDaysHard: boolean;
 
   /**
    * Hard-constraint switches. Every preference is SOFT by default (it only influences
@@ -54,6 +60,8 @@ export const DEFAULT_PREFERENCES: SchedulePreferences = {
   noAfter: null,
   noAfterStrict: false,
   maxHoursPerDay: null,
+  preferredCampusDays: null,
+  campusDaysHard: false,
   preferredDaysHard: false,
   keepFreeDaysHard: false,
   timeRangeHard: false,
@@ -91,6 +99,10 @@ export function sanitizePreferences(raw: unknown): SchedulePreferences {
   const days = (v: unknown): Day[] =>
     Array.isArray(v) ? Array.from(new Set(v.filter((d): d is Day => VALID_DAYS.includes(d as Day)))) : [];
   const mh = typeof r.maxHoursPerDay === 'number' && Number.isFinite(r.maxHoursPerDay) ? r.maxHoursPerDay : null;
+  const cd =
+    typeof r.preferredCampusDays === 'number' && Number.isInteger(r.preferredCampusDays)
+      ? r.preferredCampusDays
+      : null;
   const ps = clampMinute(r.preferredStart);
   const pe = clampMinute(r.preferredEnd);
   // A window whose start is after its end can only be corrupt input — repair by swapping.
@@ -106,6 +118,8 @@ export function sanitizePreferences(raw: unknown): SchedulePreferences {
     noAfter: clampMinute(r.noAfter),
     noAfterStrict: bool(r.noAfterStrict),
     maxHoursPerDay: mh != null && mh >= 1 && mh <= 12 ? mh : null,
+    preferredCampusDays: cd != null && cd >= 2 && cd <= 5 ? cd : null,
+    campusDaysHard: bool(r.campusDaysHard),
     preferredDaysHard: bool(r.preferredDaysHard),
     keepFreeDaysHard: bool(r.keepFreeDaysHard),
     timeRangeHard: bool(r.timeRangeHard),
@@ -157,11 +171,13 @@ export interface CompactPreferences {
   na?: number;
   nas?: 1;
   mh?: number;
+  /** Preferred campus days per week (2–5). */
+  cd?: number;
   /** Hard-constraint flags, emitted only when set. */
-  hd?: ('pd' | 'kf' | 'tr' | 'mh')[];
+  hd?: ('pd' | 'kf' | 'tr' | 'mh' | 'cd')[];
 }
 
-const HARD_CODES = ['pd', 'kf', 'tr', 'mh'] as const;
+const HARD_CODES = ['pd', 'kf', 'tr', 'mh', 'cd'] as const;
 type HardCode = (typeof HARD_CODES)[number];
 
 /** Only emits fields that differ from the defaults, keeping share links short. */
@@ -179,11 +195,13 @@ export function toCompactPreferences(p: SchedulePreferences): CompactPreferences
   if (p.noAfter != null) out.na = p.noAfter;
   if (p.noAfterStrict) out.nas = 1;
   if (p.maxHoursPerDay != null) out.mh = p.maxHoursPerDay;
+  if (p.preferredCampusDays != null) out.cd = p.preferredCampusDays;
   const hard: HardCode[] = [];
   if (p.preferredDaysHard) hard.push('pd');
   if (p.keepFreeDaysHard) hard.push('kf');
   if (p.timeRangeHard) hard.push('tr');
   if (p.maxHoursHard) hard.push('mh');
+  if (p.campusDaysHard) hard.push('cd');
   if (hard.length) out.hd = hard;
   return Object.keys(out).length > 0 ? out : undefined;
 }
@@ -207,6 +225,8 @@ export function fromCompactPreferences(c: CompactPreferences | null | undefined)
     noAfter: typeof c.na === 'number' ? c.na : null,
     noAfterStrict: !!c.nas,
     maxHoursPerDay: typeof c.mh === 'number' ? c.mh : null,
+    preferredCampusDays: typeof c.cd === 'number' ? c.cd : null,
+    campusDaysHard: hardList.includes('cd'),
     preferredDaysHard: hardList.includes('pd'),
     keepFreeDaysHard: hardList.includes('kf'),
     timeRangeHard: hardList.includes('tr'),
