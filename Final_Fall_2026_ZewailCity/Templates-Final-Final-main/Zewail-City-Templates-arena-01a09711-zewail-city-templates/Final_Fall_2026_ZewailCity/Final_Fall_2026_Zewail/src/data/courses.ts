@@ -209,21 +209,15 @@ const math105: Course = {
     },
     {
       name: 'Mohamed Fawzy Fawzy',
-      lectures: [],
+      lectures: [
+        lec('02', 'Wed', 'D', 'G019-B'),
+      ],
       labs: [],
       tutorials: [
         tut('04', 'Sun', 'A', 'G008-C'),
         tut('05', 'Tue', 'A', 'G008-C'),
         tut('06', 'Sun', 'C', 'G008-C'),
       ],
-    },
-    {
-      name: 'Ahmed Hamdy',
-      lectures: [
-        lec('02', 'Wed', 'B', 'F26-B4'),
-      ],
-      labs: [],
-      tutorials: [],
     },
     {
       name: 'Ahmed El-Deeb',
