@@ -24,6 +24,9 @@ import {
   summarizeHidden,
   hiddenReasons,
   pickIssues,
+  draftMeetings,
+  draftOverlaps,
+  meetingOption,
   publishedKinds,
   resolvedInstructorIdx,
   uid,
@@ -81,6 +84,24 @@ check('pairings never invent meetings: every entry is a published section', (() 
     ),
   );
 })());
+
+/* 2a. current MATH 105 instructor data + replacement semantics */
+{
+  const math105 = COURSE_BY_ID['math105'];
+  const sec03 = math105.instructors.flatMap((i) => i.lectures).find((m) => m.sec === '03')!;
+  check('MATH 105 Lecture Sec 03 is owned by Ahmed El-Deeb',
+    meetingOption(math105, sec03)?.instructor.name === 'Ahmed El-Deeb');
+
+  const sec02 = math105.instructors.flatMap((i) => i.lectures).find((m) => m.sec === '02')!;
+  const picks: PickState = { math105: { Lecture: uid(sec02), Lab: null, Tutorial: null } };
+  picks.math105.Lecture = uid(sec03);
+  const finalDraft = draftMeetings([math105], picks);
+  check('replacing MATH 105 Lecture Sec 02 with Sec 03 keeps only one lecture',
+    finalDraft.filter((d) => d.courseId === 'math105' && d.meeting.type === 'Lecture').length === 1 &&
+    finalDraft[0]?.meeting.sec === '03');
+  check('a replacement is checked only in its final state, not against the meeting it replaced',
+    draftOverlaps(finalDraft).length === 0);
+}
 
 /* 2b. instructor-lock removal: cross-instructor pairing widens the space, never breaks rules */
 {
