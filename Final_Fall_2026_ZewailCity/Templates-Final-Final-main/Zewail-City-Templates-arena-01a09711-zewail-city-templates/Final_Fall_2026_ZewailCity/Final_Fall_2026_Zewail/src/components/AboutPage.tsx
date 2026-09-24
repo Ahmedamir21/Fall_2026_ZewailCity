@@ -1,3 +1,5 @@
+import { COURSE_DATA_LAST_VERIFIED } from '../data/meta';
+
 const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Fall_2026_ZewailCity';
 
 const STEPS = [
@@ -80,7 +82,8 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
             <h2 className="text-[13.5px] font-bold tracking-tight">Data</h2>
             <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
               Course, section, instructor, room and time information reflects the Fall 2026 course data used by this
-              project. Sections with no confirmed instructor are shown exactly as published — nothing is invented.
+              project. The dataset was last manually verified against Self-Service on {COURSE_DATA_LAST_VERIFIED}.
+              Sections with no confirmed instructor are shown exactly as published — nothing is invented.
               The dataset itself is never modified: hiding, filtering and conflict marking are all derived views that
               disappear the moment you change your selection. Always double-check final times on the official
               registration portal before registering.
