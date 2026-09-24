@@ -1,5 +1,6 @@
 import type { Course, Instructor, Meeting, Pairing } from '../types';
 import { DAY_LABEL, durationMinutes, formatMeeting } from '../lib/time';
+import { meetingOption } from '../lib/picks';
 
 export interface DetailEntry {
   course: Course;
@@ -114,12 +115,10 @@ export function ScheduleDetails({
 
 /** Per-component teacher labels — components may come from DIFFERENT instructors. */
 function instructorLabels(entry: DetailEntry): { kind: string; name: string; unassigned?: boolean }[] {
-  const owners = entry.pairing.instructors;
   const out: { kind: string; name: string; unassigned?: boolean }[] = [];
   const seen = new Set<string>();
   entry.pairing.meetings.forEach((m) => {
-    const idx = owners?.[m.type] ?? null;
-    const instr = idx != null ? entry.course.instructors[idx] : null;
+    const instr = meetingOption(entry.course, m)?.instructor ?? entry.instructor;
     const name = instr?.unassigned ? 'Unassigned' : instr?.name ?? entry.instructor.name;
     const key = `${m.type}:${name}`;
     if (seen.has(key)) return;
