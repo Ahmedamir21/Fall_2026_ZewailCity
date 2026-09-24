@@ -32,6 +32,8 @@ interface Props {
   capNotice?: string | null;
   /** Course whose card should shake after a rejected (over-cap) addition. */
   shake?: { courseId: string; nonce: number } | null;
+  /** Desktop hover/focus bridge to the timetable. */
+  onHoverCourse?: (courseId: string | null) => void;
 }
 
 const KIND_ORDER: MeetingType[] = ['Lecture', 'Lab', 'Tutorial'];
@@ -50,8 +52,18 @@ export function CoursePicker({
   onOpenCrossYear,
   capNotice,
   shake,
+  onHoverCourse,
 }: Props) {
+  const [searchQuery, setSearchQuery] = useState('');
   const takenCourses = courses.filter((c) => picks[c.id]);
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const visibleCourses = normalizedSearch
+    ? courses.filter(
+        (c) =>
+          c.code.toLowerCase().includes(normalizedSearch) ||
+          c.name.toLowerCase().includes(normalizedSearch),
+      )
+    : courses;
 
   const overallSummary = mergeHiddenSummaries(
     takenCourses.flatMap((course) =>
@@ -106,6 +118,36 @@ export function CoursePicker({
         </div>
       </div>
 
+      <div className="mt-4">
+        <label className="sr-only" htmlFor="course-search">Search courses</label>
+        <div className="course-search-wrap">
+          <span aria-hidden>⌕</span>
+          <input
+            id="course-search"
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by course code or name..."
+            className="course-search-input"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="course-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear course search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        {normalizedSearch && (
+          <p className="mt-1.5 text-[10.5px]" style={{ color: 'var(--muted-2)' }}>
+            {visibleCourses.length} matching course{visibleCourses.length === 1 ? '' : 's'}
+          </p>
+        )}
+      </div>
+
       {capNotice && (
         <p
           className="mt-3 rounded-xl border px-3.5 py-2.5 text-[12px] font-semibold"
@@ -118,7 +160,7 @@ export function CoursePicker({
       )}
 
       <div className="mt-4 space-y-3">
-        {courses.map((course) => (
+        {visibleCourses.map((course) => (
           <CourseCard
             key={course.id}
             course={course}
@@ -133,8 +175,17 @@ export function CoursePicker({
             onClearOne={() => onClearOne(course.id)}
             yearBadge={yearBadges?.[course.id]}
             shakeNonce={shake?.courseId === course.id ? shake.nonce : null}
+            onHoverCourse={onHoverCourse}
           />
         ))}
+        {visibleCourses.length === 0 && (
+          <div className="panel-soft p-5 text-center">
+            <p className="text-[12.5px] font-semibold">No courses match “{searchQuery}”.</p>
+            <button type="button" className="btn btn-tap mt-3" onClick={() => setSearchQuery('')}>
+              Clear search
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -153,6 +204,7 @@ function CourseCard({
   onClearOne,
   yearBadge,
   shakeNonce,
+  onHoverCourse,
 }: {
   course: Course;
   pick: Pick | undefined;
@@ -168,6 +220,7 @@ function CourseCard({
   yearBadge?: string;
   /** Non-null triggers the rejected-addition shake; changes retrigger it. */
   shakeNonce?: number | null;
+  onHoverCourse?: (courseId: string | null) => void;
 }) {
   const taking = !!pick;
   // No published schedule at all (e.g. Senior Project): tickable and credit-counting, but
@@ -220,9 +273,16 @@ function CourseCard({
 
   return (
     <article
+      id={`course-card-${course.id}`}
       key={shakeNonce != null ? `shake-${shakeNonce}` : undefined}
       className={`course-card p-3.5 ${shakeNonce != null ? 'shake' : ''}`}
       data-state={!taking ? 'idle' : instructor ? 'selected' : 'pending'}
+      onMouseEnter={() => onHoverCourse?.(course.id)}
+      onMouseLeave={() => onHoverCourse?.(null)}
+      onFocusCapture={() => onHoverCourse?.(course.id)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHoverCourse?.(null);
+      }}
     >
       <header className="flex items-start gap-3">
         <input
